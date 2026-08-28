@@ -4,7 +4,7 @@ import {Text} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
 import {ScrollView} from "@expo/ui";
 import ListItem from "@/components/ListItem";
-import {scrapeClubs} from "@/scraper/livetiming/clubs";
+import { apiClubs } from "@/constants/backendEndpoints";
 
 
 export default function Index() {
@@ -14,7 +14,9 @@ export default function Index() {
 
     useAsync(async () => {
         const param = parseInt(Array.isArray(meetId) ? meetId[0] : meetId);
-        setClubs(await scrapeClubs(param));
+        const response = await fetch(`${apiClubs}/${param}`);
+        const data:string[] = await response.json();
+        setClubs(data);
         setIsLoading(false);
     }, [])
 

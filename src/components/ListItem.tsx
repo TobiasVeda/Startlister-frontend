@@ -8,11 +8,11 @@ interface Props {
     subtitle?:string,
     value?:string,
     // setter:(id: string | number) => void,
-    href:LinkProps["href"]
+    href:any
 }
 
 const ListItem = ({ number, title, subtitle="", value="", href}:Props) => {
-
+    
     // const temp = ()=>{
     //     setter(id)
     // }

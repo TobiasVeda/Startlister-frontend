@@ -2,10 +2,23 @@ import {useState} from "react";
 import {Stack, useLocalSearchParams} from "expo-router";
 import {Text} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
-import {Discipline, Heat, scrapeSchedule} from "@/scraper/livetiming/schedule";
 import {ScrollView} from "@expo/ui";
 import ListItem from "@/components/ListItem";
+import { apiSchedule } from "@/constants/backendEndpoints";
 
+// export interface Schedule{
+//     disciplines:Discipline[];
+// }
+export interface Discipline {
+    name:string,
+    date:string,
+    time:string
+    heats:Heat[]
+}
+export interface Heat {
+    number:number,
+    time:string
+}
 
 export default function Index() {
     const [schedule, setSchedule] = useState<Discipline[]>([]);
@@ -14,7 +27,9 @@ export default function Index() {
     
     useAsync(async () => {
         const param = parseInt(Array.isArray(meetId) ? meetId[0] : meetId);
-        setSchedule(await scrapeSchedule(param));
+        const response = await fetch(`${apiSchedule}/${param}`);
+        const data:Discipline[] = await response.json();
+        setSchedule(data);
         setIsLoading(false);
     }, [])
     

@@ -1,31 +1,45 @@
 import { Text, View, StyleSheet, TextInput } from "react-native";
 import {Button, ScrollView} from "@expo/ui";
 import ListItem from "@/components/ListItem";
-import {Meet, scrapeMeetList} from "@/scraper/ltmobil/meetList";
 import {useEffect, useState} from "react";
 import * as date from "@/utils/date"
 import { Stack } from "expo-router";
-import {scrapeMeetDetails} from "@/scraper/livetiming/meetDetails";
 import {useAsync} from "@/hooks/useAsync";
+import { apiMeetList } from "@/constants/backendEndpoints";
+
+export interface Data {
+    meets: Meet[]
+    validYears: {
+        year:number,
+        default:boolean
+    }[]
+}
+export interface Meet {
+    meetId:number,
+    meetName:string,
+    dateFrom:string,
+    dateTo?:string,
+    location:string
+}
 
 export default function Index() {
     const [search, setSearch] = useState("");
-    const [meets, setMeets] = useState<Meet[]>([]);
+    const [meet, setMeet] = useState<Data>({meets:[], validYears:[]});
     const [filteredMeets, setFilteredMeets] = useState<Meet[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-
+    
     useAsync(async () => {
-        const tmp = await scrapeMeetList(2026);
-        setMeets(tmp);
-        setFilteredMeets(tmp);
+        const response = await fetch(apiMeetList);
+        const data:Data = await response.json();
+        setMeet(data);
+        setFilteredMeets(data.meets);
         setIsLoading(false);
-        await scrapeMeetDetails(5613);
     }, [])
 
-    useEffect(() => { 
-        setFilteredMeets(meets.filter((m:Meet)=>(m.meetName.toLowerCase().includes(search.toLowerCase())))); 
-    }, [search]);
+    useEffect(() => {
+        setFilteredMeets(meet.meets.filter((m:Meet)=>(m.meetName.toLowerCase().includes(search.toLowerCase()))));
+    }, [search, meet.meets]);
     
     const subtitle = (from:string, to:string, loc:string)=>{
         if (to === date.ndate){
@@ -49,8 +63,8 @@ export default function Index() {
                 placeholder={"Søk i stevner"}
                 placeholderTextColor={"gray"}
             />
-            {filteredMeets.map((m:Meet, i:number)=>(
-                <ListItem key={"meet"+i} title={m.meetName} subtitle={subtitle(m.dateFrom, m.dateTo, m.location)} href={"/"}/>
+            {filteredMeets?.map((m:Meet, i:number)=>(
+                <ListItem key={"meet"+i} title={m.meetName} subtitle={subtitle(m.dateFrom, m.dateTo!, m.location)} href={"/" + m.meetId}/>
 
             ))}
 

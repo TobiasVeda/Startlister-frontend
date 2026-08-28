@@ -1,23 +1,52 @@
-import * as livetiming from "@/scraper/livetiming/meetDetails"
-import * as medley from "@/scraper/medley/meetDetails"
 import {useEffect, useState} from "react";
 import {ScrollView} from "@expo/ui";
 import ListItem from "@/components/ListItem";
-import {Stack, useLocalSearchParams} from "expo-router";
+import {Stack, useLocalSearchParams, usePathname} from "expo-router";
 import {Text} from "react-native";
 import * as date from "@/utils/date"
 import {useAsync} from "@/hooks/useAsync";
+import { apiMeetDetails } from "@/constants/backendEndpoints";
+
+export interface MeetDetails {
+    data:Data,
+    lists:Lists,
+    documents:Document[]
+}
+export interface Data {
+    location:string,
+    hostClub:string,
+    meetName:string,
+    from:string,
+    to:string,
+    numberOfLanes:string,
+    poolLength:string,
+    poolName:string,
+    meetType:string,
+    registerDeadline:string
+}
+export interface Lists {
+    hasStartlist:boolean,
+    hasHeatlist:boolean,
+    hasResults:boolean,
+    hasFinals:boolean,
+    hasSchedule:boolean
+}
+export interface Document {
+    name:string,
+    url:string
+}
 
 export default function Index() {
-    const [details, setDetails] = useState<livetiming.MeetDetails>(); // TODO: get name from ltmobil instead of medley
-    const [additionalDetails, setAdditionalDetails] = useState<medley.MeetDetails>();
+    const [details, setDetails] = useState<MeetDetails>();
     const [isLoading, setIsLoading] = useState(true);
     const { meetId } = useLocalSearchParams();
-        
+    const path = usePathname();
+
     useAsync(async () => {
             const param = parseInt(Array.isArray(meetId) ? meetId[0] : meetId);
-            setDetails(await livetiming.scrapeMeetDetails(param));
-            setAdditionalDetails(await medley.scrapeMeetDetails(param));
+            const response = await fetch(`${apiMeetDetails}/${param}`);
+            const data:MeetDetails = await response.json();
+            setDetails(data);
             setIsLoading(false);
     }, [])
     
@@ -57,32 +86,28 @@ export default function Index() {
             </Text>
             <Text>
                 <Text style={{fontWeight: "bold"}}>Stevnenavn: </Text>
-                <Text>{additionalDetails?.data?.meetName}</Text>
+                <Text>{details?.data?.meetName}</Text>
             </Text>
             <Text>
                 <Text style={{fontWeight: "bold"}}>Svømmehall: </Text>
-                <Text>{additionalDetails?.data?.poolName}</Text>
+                <Text>{details?.data?.poolName}</Text>
             </Text>
             <Text>
                 <Text style={{fontWeight: "bold"}}>Påmeldingsfrist: </Text>
-                <Text>{additionalDetails?.data ? date.fromISOString(additionalDetails.data.registerDeadline) : ""}</Text>
+                <Text>{details?.data ? date.fromISOString(details.data.registerDeadline) : ""}</Text>
             </Text>
             
             <Text>Søkbare Lister</Text>
-            {details?.lists?.hasStartlist && <ListItem subtitle={"(TODO)"} title={"Startlister"} href={"/meet"}/>}
-            {details?.lists?.hasHeatlist && <ListItem subtitle={"(TODO)"} title={"Heatlister"} href={"/disciplines"}/>}
-            {details?.lists?.hasResults && <ListItem subtitle={"(TODO)"} title={"Resultater"} href={"/disciplines"}/>}
-            {details?.lists?.hasFinals && <ListItem subtitle={"(TODO)"} title={"Finalelister"} href={"/meet"}/>}
-            {details?.lists?.hasSchedule && <ListItem title={"Tidsskjema"} href={"/schedule"}/>}
-            {details?.lists && <ListItem subtitle={"(TODO:Personer)"} title={"Klubber & Personer"} href={"/clubs"}/>}
-            {details?.lists && <ListItem subtitle={"(TODO)"} title={"Livetiming"} href={"/meet"}/>}
+            {details?.lists?.hasStartlist && <ListItem title={"Startlister"} href={path + "/startlister"}/>}
+            {details?.lists?.hasHeatlist && <ListItem title={"Heatlister"} href={path + "/heatlister"}/>}
+            {details?.lists?.hasResults && <ListItem title={"Resultater"} href={path + "/resultater"}/>}
+            {details?.lists?.hasFinals && <ListItem title={"Finalelister"} href={path + "/finalelister"}/>}
+            {details?.lists?.hasSchedule && <ListItem title={"Tidsskjema"} href={path + "/tidsskjema"}/>}
+            {details?.lists && <ListItem subtitle={"(TODO:Personer)"} title={"Klubber & Personer"} href={path + "/klubber"}/>}
+            {details?.lists && <ListItem subtitle={"(TODO)"} title={"Livetiming"} href={"/"}/>}
             <Text>Eksterne Dokumenter og Koblinger</Text>
             {details?.documents?.map((x, i:number)=>(
-                <ListItem key={"doc"+i} title={x.name} subtitle={x.url} href={"/"}/>
-
-            ))}
-            {additionalDetails?.documents?.map((x, i:number)=>(
-                <ListItem key={"doc"+i} title={x.name} subtitle={x.url} href={"/"}/>
+                <ListItem key={"doc"+i} title={x.name} subtitle={x.url} href={x.url}/>
 
             ))}
         </ScrollView>
