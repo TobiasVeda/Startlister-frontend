@@ -1,10 +1,11 @@
 import {useState} from "react";
 import {Stack, useLocalSearchParams} from "expo-router";
-import {Text} from "react-native";
+import {Text, View} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
 import {ScrollView} from "@expo/ui";
-import ListItem from "@/components/ListItem";
+import {ListItem} from "@/components/ListItem";
 import { apiClubs } from "@/constants/backendEndpoints";
+import {ActivityIndicator} from "react-native-paper";
 
 
 export default function Index() {
@@ -25,7 +26,7 @@ export default function Index() {
             <Stack.Screen options={{
                 title: "Klubber",
                 headerRight: () =>
-                    isLoading ? <Text>Loading...</Text> : null }}
+                    isLoading ? <View style={{ paddingRight: 16 }}><ActivityIndicator size={25} /></View> : null }}
             />
             <ScrollView>
                 {clubs.map((x:string, i:number)=>(

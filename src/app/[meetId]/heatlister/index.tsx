@@ -44,14 +44,22 @@ export default function Index() {
                     isLoading ? <Text>Loading...</Text> : null }}
             />
             <ScrollView>
-                {heatlists.map((x:Discipline, i:number)=>(
+                {startlists.map((x:Discipline, i:number)=>(
                     <>
-                        <ListItem key={i} title={x.name} href={"/"}/>
-                        {x.heats.map((y:Heat, j:number) => (
-                            <Text key={i + "-" + j}>
-                                Heat: {y.heat} | Bane: {y.lane} | Navn: {y.name} | Klubb: {y.club} | Født: {y.born} | Klasse: {y.class} | Påmeldt Tid: {y.regTime} | Prosent: {y.percent} | Heattekst: {y.text}
-                            </Text>
+                        <Text>{x.name}</Text>
+                        {x.classes.map((y:Class, j:number) => (
+                            <>
+                                <Text>{y.name}</Text>
+                                {y.starts.map((z:Swimmer, k:number) => (
+                                    <>
+                                        <StartListItem key={i+""+j+""+k} number={z.rank} name={z.name} club={z.club} time={z.regTime} text={""} HC={z.HC} notFirst notLast/>
+                                        
+                                    </>
+
+                                ))}
+                            </>
                         ))}
+
                     </>
                 ))}
             </ScrollView>
