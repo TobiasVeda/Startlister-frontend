@@ -1,20 +1,31 @@
 import {useState} from "react";
 import {Stack, useLocalSearchParams} from "expo-router";
-import {Text} from "react-native";
+import {Text, View} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
 import {ScrollView} from "@expo/ui";
 import ListItem from "@/components/ListItem";
 import { apiHeatlists } from "@/constants/backendEndpoints";
+import Fetch from "@/utils/Fetch";
+import {ActivityIndicator} from "react-native-paper";
+import {SectionHeader} from "@/components/SectionHeader";
+import {StartListItem} from "@/components/StartListItem";
 
 export interface Discipline {
     name:string,
+    startTime:string,
     heats:Heat[]
 }
 export interface Heat {
-    heat:number,
+    heatNumber:number,
+    startTime:string,
+    starts:Start[]
+}
+export interface Start {
     lane:number,
     name:string,
+    swimmerId:number,
     club:string,
+    clubId:number,
     born:number,
     class:string,
     regTime:string,
@@ -26,14 +37,17 @@ export interface Heat {
 export default function Index() {
     const [heatlists, setHeatlists] = useState<Discipline[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { meetId } = useLocalSearchParams();
+    const { meetId } = useLocalSearchParams<{meetId:string}>();
 
     useAsync(async () => {
-        const param = parseInt(Array.isArray(meetId) ? meetId[0] : meetId);
-        const response = await fetch(`${apiHeatlists}/${meetId}`);
-        const data:Discipline[] = await response.json();
-        setHeatlists(data);
-        setIsLoading(false);
+        try {
+            const response = await Fetch.get<Discipline[]>(`${apiHeatlists}/${meetId}`);
+            const data:Discipline[] = response.data;
+            setHeatlists(data);
+            setIsLoading(false);
+        } catch (e) {
+            // TODO
+        }
     }, [])
 
     return (
@@ -41,27 +55,44 @@ export default function Index() {
             <Stack.Screen options={{
                 title: "Heatlister",
                 headerRight: () =>
-                    isLoading ? <Text>Loading...</Text> : null }}
+                    isLoading ? <View style={{ paddingRight: 16 }}><ActivityIndicator size={25} /></View> : null }}
             />
+            
             <ScrollView>
-                {startlists.map((x:Discipline, i:number)=>(
+                
+                {heatlists.map((x:Discipline, i:number)=>(
                     <>
-                        <Text>{x.name}</Text>
-                        {x.classes.map((y:Class, j:number) => (
+                        
+                        <SectionHeader key={i} title={`Øvelse: ${x.name} Starttid: ${x.startTime}`} />
+                        {x.heats.map((y:Heat, j:number) => (
                             <>
-                                <Text>{y.name}</Text>
-                                {y.starts.map((z:Swimmer, k:number) => (
+                                
+                                <SectionHeader key={i+""+j} title={`Heat: ${y.heatNumber} StartTid: ${y.startTime}`} />
+                                {y.starts.map((z:Start, k:number) => (
                                     <>
-                                        <StartListItem key={i+""+j+""+k} number={z.rank} name={z.name} club={z.club} time={z.regTime} text={""} HC={z.HC} notFirst notLast/>
+                                        
+                                        <StartListItem 
+                                            key={i+""+j+""+k} 
+                                            number={z.lane} 
+                                            name={z.name} 
+                                            club={z.club} 
+                                            class={z.class} 
+                                            time={z.regTime} 
+                                            text={z.text} 
+                                            HC={z.HC !== "" ? `${z.HC} ${parseInt(z.percent)}%` : ""}
+                                            squareTop={k !== 0}
+                                            squareBottom={k !== y.starts.length-1}
+                                        />
                                         
                                     </>
-
                                 ))}
+                                
                             </>
                         ))}
 
                     </>
                 ))}
+                
             </ScrollView>
         </>
     );

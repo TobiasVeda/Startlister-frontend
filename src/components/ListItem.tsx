@@ -32,9 +32,9 @@ export function ListItem({ title, subtitle, href, icon = 'format-list-bulleted' 
                 />
 
                 <View style={styles.content}>
-                    <Text variant="titleMedium">{title}</Text>
+                    <Text variant="titleMedium" numberOfLines={1}>{title}</Text>
                     {subtitle ? (
-                        <Text variant="bodySmall">
+                        <Text variant="bodySmall" numberOfLines={1}>
                             {subtitle}
                         </Text>
                     ) : null}
@@ -50,7 +50,8 @@ const styles = StyleSheet.create({
     card: {
         // marginHorizontal: 8,
         // marginVertical: 3,
-        margin: 2
+        marginTop: 3, 
+        marginHorizontal: 3
     },
     row: {
         flexDirection: 'row',

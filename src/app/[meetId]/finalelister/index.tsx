@@ -1,113 +1,198 @@
-import {useEffect, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {Stack, useLocalSearchParams} from "expo-router";
-import {Text} from "react-native";
+import {Text, View, StyleSheet} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
-import {Button, Checkbox, ScrollView, Slider} from "@expo/ui";
-import ListItem from "@/components/ListItem";
-import { apiFinals } from "@/constants/backendEndpoints";
+import {Checkbox, ScrollView} from "@expo/ui";
+import {apiFinals} from "@/constants/backendEndpoints";
+import Fetch from "@/utils/Fetch";
+import {ActivityIndicator, Switch, useTheme, Button} from "react-native-paper";
+import {SectionHeader} from "@/components/SectionHeader";
+import {StartListItem} from "@/components/StartListItem";
+import Slider from "@react-native-community/slider";
+import {Heat, Start} from "@/app/[meetId]/heatlister";
 
 export interface Discipline {
-    name:string,
-    entries:Entry[]
+    name:string;
+    entries:Entry[];
 }
 export interface Entry {
-    rank:string,
-    name:string,
-    born:string,
-    club:string,
-    class:string,
-    endTime:string,
-    comment:string
+    rank:string;
+    name:string;
+    born:string;
+    club:string;
+    class:string;
+    endTime:string;
+    comment:string;
 }
 
 export default function Index() {
     const [finals, setFinals] = useState<Discipline[]>([]);
-    const [showDeletions, setShowDeletions] = useState<boolean>(true);
-    const [reserveCount, setReserveCount] = useState<number>(2);
-    const [sliderText, setSliderText] = useState<string>("Vis 2 reserver");
     const [isLoading, setIsLoading] = useState(true);
-    const { meetId } = useLocalSearchParams();
-    const [sliderIndex, setSliderIndex] = useState<number>(1);
-    const sliderValues:number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 26];
+    const { meetId } = useLocalSearchParams<{meetId:string}>();
+    const [showDeletions, setShowDeletions] = useState<boolean>(false);
+    const [showReserves, setShowReserves] = useState<boolean>(false);
+    const [reserveCount, setReserveCount] = useState<number>(-1);
+    const theme = useTheme();
+    
+    const filteredFinals:Discipline[] = useMemo(() => {
+        return finals.map((x:Discipline) => {
+            let currReserveCount = 0;
+            return {
+                ...x,
+                entries: x.entries.filter((y: Entry) => {
+                    
+                    if (y.comment === "Strøket" && !showDeletions) {
+                        return false;
+                    } else if (y.comment === "Reserve") {
+                        if (!showReserves) {
+                            return false;
+                        } else if (currReserveCount >= reserveCount && reserveCount !== -1) {
+                            return false;
+                        } else {
+                            ++currReserveCount;
+                            return true;
+                        }
+                    }
+                    return true;
+                })
+            }
+        });
+    }, [finals, showDeletions, showReserves, reserveCount]);
 
     useAsync(async () => {
-        setIsLoading(true);
-        const param = parseInt(Array.isArray(meetId) ? meetId[0] : meetId);
-        const response = await fetch(`${apiFinals}/${param}`)
-        const data: Discipline[] = await response.json();
-        setFinals(data);
-        setIsLoading(false);
-    }, []);
-
-    useEffect(() => {
-        setReserveCount(sliderValues[sliderIndex]);
-        if (sliderIndex === 0) {
-            setSliderText("Ikke vis reserver");
-            return;
+        try {
+            const response = await Fetch.get<Discipline[]>(`${apiFinals}/${meetId}`);
+            const data:Discipline[] = response.data;
+            setFinals(data);
+            setIsLoading(false);
+        } catch (e) {
+            // TODO
         }
-        if (sliderIndex === sliderValues.length -1) {
-            setSliderText("Vis alle reserver");
-            return;
-        }
-        let str:string = "Vis " + sliderValues[sliderIndex] + " reserve";
-        if (sliderIndex > 1) {
-            str += "r";
-        }
-        setSliderText(str);
-    }, [sliderIndex]);
+    }, [])
     
-    const reload = async () => {
-        setIsLoading(true);
-        const param = parseInt(Array.isArray(meetId) ? meetId[0] : meetId);
-        const response = await fetch(`${finals}/${param}`)
-        const data: Discipline[] = await response.json();
-        setFinals(data);
-        setIsLoading(false);
-    }
-    const decrement = () => {
-        if (sliderIndex !== 0) {
-            setSliderIndex(sliderIndex - 1);
+    const reserveCountSubtitle = () => {
+        if (reserveCount === 0) {
+            return "Viser ingen reserver";
+        } else if (reserveCount === -1) {
+            return "Viser alle reserver";
+        } else {
+            return `Viser ${reserveCount} reserve${reserveCount > 1 ? "r" : ""}`;
         }
-    }
+    };
+    
     const increment = () => {
-        if (sliderIndex !== sliderValues.length -1) {
-            setSliderIndex(sliderIndex + 1);
+        if (reserveCount === 25) {
+            return;
         }
-    }
-    
+        setReserveCount(reserveCount + 1);
+    };
+    const decrement = () => {
+        if (reserveCount === -1) {
+            return;
+        }
+        setReserveCount(reserveCount - 1);
+    };
+
     return (
         <>
             <Stack.Screen options={{
                 title: "Finalelister",
                 headerRight: () =>
-                    isLoading ? <Text>Loading...</Text> : null }}
+                    isLoading ? <View style={{ paddingRight: 16 }}><ActivityIndicator size={25} /></View> : null }}
             />
-            <ScrollView>
-                <Text>{sliderText}</Text>
-                <Button onPress={decrement}><Text>&lt;</Text></Button>
-                <Slider
-                    value={sliderIndex}
-                    onValueChange={setSliderIndex}
-                    min={0}
-                    max={sliderValues.length -1}
-                    step={1}
-                />
-                <Button onPress={increment}><Text>&gt;</Text></Button>
-                <Text>{showDeletions ? "Vis strykninger" : "Ikke vis strykninger"}</Text>
-                <Checkbox value={showDeletions} onValueChange={setShowDeletions} />
-                <Button onPress={reload}><Text>Søk</Text></Button>
 
-                {finals.map((x:Discipline, i:number)=>(
+            <ScrollView>
+
+                <View style={styles.controls}>
+                    <View style={styles.toggle}>
+                        <Text>Vis strykinger</Text>
+                        <Switch value={showDeletions} onValueChange={() => setShowDeletions(!showDeletions)} />
+                    </View>
+
+                    <View style={styles.toggle}>
+                        <Text>Vis reserver</Text>
+                        <Switch value={showReserves} onValueChange={() => setShowReserves(!showReserves)} />
+                    </View>
+
+                    {showReserves && (
+                        <View style={styles.reserveControls}>
+                            <Text style={styles.reserveLabel}>{reserveCountSubtitle()}</Text>
+                            <Button icon="minus" mode="elevated" onPress={decrement} compact>{""}</Button>
+                            <Slider
+                                style={styles.slider}
+                                step={1}
+                                value={reserveCount}
+                                onValueChange={setReserveCount}
+                                minimumValue={-1}
+                                maximumValue={25}
+                                thumbTintColor={theme.colors.primary}
+                                minimumTrackTintColor={theme.colors.primary}
+                                maximumTrackTintColor={theme.colors.surfaceVariant}
+                            />
+                            <Button icon="plus" mode="elevated" onPress={increment} compact>{""}</Button>
+                        </View>
+                    )}
+                </View>
+                
+
+
+                {filteredFinals.map((x:Discipline, i:number)=>(
                     <>
-                        <ListItem key={i} title={x.name} href={"/"}/>
+
+                        <SectionHeader key={i} title={`Øvelse: ${x.name}`} />
                         {x.entries.map((y:Entry, j:number) => (
-                            <Text key={i + "-" + j}>
-                                Rank: {y.rank} | Navn: {y.name} | Født: {y.born} | Klubb: {y.club} | Klasse: {y.class} | Sluttid: {y.endTime} | Kommentar: {y.comment}
-                            </Text>
+                            <>
+
+                                <StartListItem
+                                    key={i+""+j}
+                                    number={isNaN(parseInt(y.rank)) ? 0 : parseInt(y.rank)}
+                                    name={y.name}
+                                    club={y.club}
+                                    class={y.class}
+                                    time={y.endTime}
+                                    text={y.comment}
+                                    HC={""}
+                                    squareTop={j !== 0}
+                                    squareBottom={j !== x.entries.length-1}
+                                    p={isNaN(parseInt(y.rank)) || y.comment === "Strøket" || y.comment === "Reserve"}
+                                />
+
+                            </>
                         ))}
+
                     </>
                 ))}
+
             </ScrollView>
         </>
     );
 }
+
+const styles = StyleSheet.create({
+    controls: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        gap: 12,
+        paddingHorizontal: 8,
+    },
+    toggle: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+    },
+    reserveControls: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+    },
+    slider: {
+        flex: 1,
+        height: 40,
+    },
+    reserveLabel: {
+        minWidth: 36,
+        textAlign: "center",
+    },
+});

@@ -56,11 +56,7 @@ export default function Index() {
         }));
         setDropdownOptions(OPTIONS);
     }, [meet.validYears]);
-
-    const OPTIONS = meet.validYears.map((year) => ({
-        label: String(year),
-        value: String(year),
-    }));
+    
 
     return (
         <>

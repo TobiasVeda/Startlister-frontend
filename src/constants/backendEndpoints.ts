@@ -1,5 +1,5 @@
 
-const baseUrl = "http://127.0.0.1:5000/";
+const baseUrl:string = process.env.EXPO_PUBLIC_API_URL ?? "";
 
 export const apiMeetList = baseUrl + "meetList";
 export const apiMeetDetails = baseUrl + "meetdetails";

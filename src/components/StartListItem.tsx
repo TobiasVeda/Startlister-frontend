@@ -1,8 +1,8 @@
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Card, Text, useTheme } from 'react-native-paper';
-import { LinearGradient } from 'expo-linear-gradient';
-import {InfoTooltip} from "@/components/InfoTooltip";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { Card, Text, useTheme } from "react-native-paper";
+import { LinearGradient } from "expo-linear-gradient";
+import { InfoTooltip } from "@/components/InfoTooltip";
 
 type StartListItemProps = {
 	number: number;
@@ -12,8 +12,8 @@ type StartListItemProps = {
 	time: string;
 	HC?: string;
 	text: string;
-	first?: boolean;
-	last?: boolean;
+	squareTop?: boolean;
+	squareBottom?: boolean;
 	p?: boolean;
 };
 
@@ -21,10 +21,10 @@ type Medal = { colors: readonly [string, string]; text: string };
 
 const RADIUS = 12; // MD3 card default (3 * roundness)
 
-const GOLD: Medal = { colors: ['#FFE98A', '#D9A520'], text: '#3D2B00' };
-const SILVER: Medal = { colors: ['#F2F2F2', '#A9AEB3'], text: '#2B2F33' };
-const BRONZE: Medal = { colors: ['#E9AE77', '#A2622C'], text: '#FFFFFF' };
-const GRAY: Medal = { colors: ['#B9BCBF', '#80858A'], text: '#FFFFFF' };
+const GOLD: Medal = { colors: ["#FFE98A", "#D9A520"], text: "#3D2B00" };
+const SILVER: Medal = { colors: ["#F2F2F2", "#A9AEB3"], text: "#2B2F33" };
+const BRONZE: Medal = { colors: ["#E9AE77", "#A2622C"], text: "#FFFFFF" };
+const GRAY: Medal = { colors: ["#B9BCBF", "#80858A"], text: "#FFFFFF" };
 
 function getMedal(n: number): Medal {
 	if (n === 1) return GOLD;
@@ -41,8 +41,8 @@ export function StartListItem({
 								  time,
 								  HC,
 								  text,
-								  first = true,
-								  last = true,
+								  squareTop = false,
+								  squareBottom = false,
 								  p,
 							  }: StartListItemProps) {
 	const theme = useTheme();
@@ -51,7 +51,7 @@ export function StartListItem({
 	const numberText = (
 		<Text
 			variant="titleSmall"
-			style={{ color: medal ? medal.text : theme.colors.onPrimary, fontWeight: 'bold' }}
+			style={{ color: medal ? medal.text : theme.colors.onPrimary, fontWeight: "bold" }}
 		>
 			{number}
 		</Text>
@@ -63,15 +63,15 @@ export function StartListItem({
 			style={[
 				styles.card,
 				{
-					borderTopLeftRadius: first ? RADIUS : 0,
-					borderTopRightRadius: first ? RADIUS : 0,
-					borderBottomLeftRadius: last ? RADIUS : 0,
-					borderBottomRightRadius: last ? RADIUS : 0,
-					marginTop: first ? 2 : 0,
-					marginBottom: last ? 2 : 0,
+					borderTopLeftRadius: squareTop ? 0 : RADIUS,
+					borderTopRightRadius: squareTop ? 0 : RADIUS,
+					borderBottomLeftRadius: squareBottom ? 0 : RADIUS,
+					borderBottomRightRadius: squareBottom ? 0 : RADIUS,
+					marginTop: squareTop ? 0 : 2,
+					marginBottom: squareBottom ? 0 : 2,
 				},
 			]}
-			accessibilityLabel={`${number}. ${name}, ${club}, ${swimClass}${HC ? ` ${HC}` : ''}, ${time}`}
+			accessibilityLabel={`${number}. ${name}, ${club}, ${swimClass}${HC ? ` ${HC}` : ""}, ${time}`}
 		>
 			<View style={styles.row}>
 				{/* number / place badge */}
@@ -105,9 +105,10 @@ export function StartListItem({
 							</View>
 						) : null}
 					</View>
-
-					<InfoTooltip text={text}/>
 				</View>
+
+				{/* info tooltip, directly left of the time */}
+				{text !== "" ? <InfoTooltip text={text} /> : null}
 
 				{/* time */}
 				<Text variant="titleMedium" style={styles.time}>
@@ -123,8 +124,8 @@ const styles = StyleSheet.create({
 		marginHorizontal: 2,
 	},
 	row: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 10,
 		paddingVertical: 8,
 		paddingHorizontal: 10,
@@ -133,16 +134,16 @@ const styles = StyleSheet.create({
 		width: 36,
 		height: 36,
 		borderRadius: 18,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	content: {
 		flex: 1,
 		gap: 2,
 	},
 	classRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 6,
 	},
 	hcOutline: {
@@ -152,6 +153,6 @@ const styles = StyleSheet.create({
 	},
 	time: {
 		flexShrink: 0,
-		fontVariant: ['tabular-nums'], // digits line up between rows
+		fontVariant: ["tabular-nums"], // digits line up between rows
 	},
 });

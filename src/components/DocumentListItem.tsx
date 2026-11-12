@@ -37,8 +37,8 @@ export function DocumentListItem({ title, subtitle, href }: DocumentListItemProp
 				/>
 
 				<View style={styles.content}>
-					<Text variant="titleMedium">{title}</Text>
-					{subtitle ? <Text variant="bodySmall">{subtitle}</Text> : null}
+					<Text variant="titleMedium" numberOfLines={1}>{title}</Text>
+					{subtitle ? <Text variant="bodySmall" numberOfLines={1}>{subtitle}</Text> : null}
 				</View>
 
 				<Icon source="open-in-new" size={24} color={theme.colors.primary} />
@@ -49,7 +49,8 @@ export function DocumentListItem({ title, subtitle, href }: DocumentListItemProp
 
 const styles = StyleSheet.create({
 	card: {
-		margin: 2,
+		marginTop: 3, 
+		marginHorizontal: 3
 	},
 	row: {
 		flexDirection: "row",

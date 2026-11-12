@@ -1,37 +1,44 @@
-import {Card, Icon, Avatar, Text} from "react-native-paper";
-import {View, StyleSheet} from "react-native";
-import {Meet} from "@/app";
+import {Card, Avatar, Text, useTheme} from "react-native-paper";
+import { View, StyleSheet } from "react-native";
+import { useRouter, type Href } from "expo-router";
+import { Meet } from "@/app";
 
 export interface Prop {
-	data:Meet;
+	data: Meet;
 }
 
-export function MeetListItem(prop:Prop) {
-	const { meetName, location, dateTo, dateFrom } = prop.data
+export function MeetListItem(prop: Prop) {
+	const { meetName, location, dateTo, dateFrom, meetId } = prop.data;
 	const dateLabel = dateTo ? dateFrom + " - " + dateTo : dateFrom;
-	
+	const router = useRouter();
+	const theme = useTheme();
+
 	return (
-		<Card mode={"elevated"}>
+		<Card
+			mode={"elevated"}
+			onPress={() => router.push("/"+meetId)}
+			style={{marginTop: 3, marginHorizontal: 3}}
+		>
 			<Card.Content style={styles.content}>
 				<View style={styles.left}>
 
 					{/*main icon*/}
 					<View style={styles.mainIcon}>
-						<Avatar.Icon size={30} icon="swim"/>
+						<Avatar.Icon size={40} icon="swim" style={{margin: -5}}/>
 					</View>
 
 					{/*data*/}
 					<View style={styles.data}>
 						<View>
-							<Text variant="titleMedium">{meetName}</Text>
+							<Text variant="titleMedium" numberOfLines={1}>{meetName}</Text>
 						</View>
 						<View style={styles.row}>
-							<Avatar.Icon size={24} icon="calendar-month-outline" style={styles.rowIcon}/>
-							<Text variant="labelMedium">{dateLabel}</Text>
+							<Avatar.Icon size={24} icon="calendar-month-outline" color={theme.colors.primary} style={[styles.rowIcon, { backgroundColor: "transparent" }]}/>
+							<Text variant="labelMedium" numberOfLines={1}>{dateLabel}</Text>
 						</View>
 						<View style={styles.row}>
-							<Avatar.Icon size={24} icon="map-marker-outline" style={styles.rowIcon}/>
-							<Text variant="labelMedium">{location}</Text>
+							<Avatar.Icon size={24} icon="map-marker-outline" color={theme.colors.primary} style={[styles.rowIcon, { backgroundColor: "transparent" }]}/>
+							<Text variant="labelMedium" numberOfLines={1}>{location}</Text>
 						</View>
 					</View>
 
@@ -39,7 +46,7 @@ export function MeetListItem(prop:Prop) {
 
 				{/*chevron*/}
 				<View style={styles.rightItems}>
-					<Avatar.Icon size={24} icon="chevron-right"/>
+					<Avatar.Icon size={90} color={theme.colors.primary} style={{margin: -30, backgroundColor: "transparent"}} icon="chevron-right"/>
 				</View>
 			</Card.Content>
 		</Card>
@@ -71,7 +78,8 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: "row",
 		alignItems: "center",
-		margin: -3
+		marginLeft: 0,
+		marginVertical: -5
 	},
 	rowIcon: {
 		marginLeft: -5

@@ -14,7 +14,7 @@ export function SectionHeader({ title }: SectionHeaderProps) {
 			style={[styles.container, { backgroundColor: theme.colors.surfaceVariant }]}
 			accessibilityRole="header"
 		>
-			<Text variant="titleSmall" style={{ color: theme.colors.onSurfaceVariant }}>
+			<Text variant="titleSmall" style={{ color: theme.colors.onSurfaceVariant }} numberOfLines={1}>
 				{title}
 			</Text>
 		</View>

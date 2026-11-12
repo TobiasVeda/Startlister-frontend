@@ -35,45 +35,45 @@ export function MeetDetails(props:Props) {
 					{(from === to) &&
                         <View style={table.row}>
                             <Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Dato</Text>
-                            <Text variant="labelMedium">{from ?? blank}</Text>
+                            <Text variant="labelMedium" numberOfLines={1}>{from ?? blank}</Text>
                         </View>}
 					{(from !== to) && <>
                         <View style={table.row}>
                             <Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Til dato</Text>
-                            <Text variant="labelMedium" style={table.value}>{to ?? blank}</Text>
+                            <Text variant="labelMedium" numberOfLines={1} style={table.value}>{to ?? blank}</Text>
                         </View>
                         <View style={table.row}>
                             <Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Fra dato</Text>
-                            <Text variant="labelMedium" style={table.value}>{from ?? blank}</Text>
+                            <Text variant="labelMedium" numberOfLines={1} style={table.value}>{from ?? blank}</Text>
                         </View>
                     </>}
 					<View style={table.row}>
 						<Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Arrangør</Text>
-						<Text variant="labelMedium" style={table.value}>{hostClub ?? blank}</Text>
+						<Text variant="labelMedium" numberOfLines={2} style={table.value}>{hostClub ?? blank}</Text>
 					</View>
 					<View style={table.row}>
 						<Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Sted</Text>
-						<Text variant="labelMedium" style={table.value}>{location ?? blank}</Text>
+						<Text variant="labelMedium" numberOfLines={2} style={table.value}>{location ?? blank}</Text>
 					</View>
 					<View style={table.row}>
 						<Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Bassengnavn</Text>
-						<Text variant="labelMedium" style={table.value}>{poolName ?? blank}</Text>
+						<Text variant="labelMedium" numberOfLines={2} style={table.value}>{poolName ?? blank}</Text>
 					</View>
 					<View style={table.row}>
 						<Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Antall baner</Text>
-						<Text variant="labelMedium" style={table.value}>{numberOfLanes ?? blank}</Text>
+						<Text variant="labelMedium" numberOfLines={1} style={table.value}>{numberOfLanes ?? blank}</Text>
 					</View>
 					<View style={table.row}>
 						<Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Bassenglengde</Text>
-						<Text variant="labelMedium" style={table.value}>{poolLength ?? blank}</Text>
+						<Text variant="labelMedium" numberOfLines={1} style={table.value}>{poolLength ?? blank}</Text>
 					</View>
 					<View style={table.row}>
 						<Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Stevnetype</Text>
-						<Text variant="labelMedium" style={table.value}>{meetType ?? blank}</Text>
+						<Text variant="labelMedium" numberOfLines={3} style={table.value}>{meetType ?? blank}</Text>
 					</View>
 					<View style={table.row}>
 						<Text variant="labelMedium" style={[{color: theme.colors.primary, fontWeight: "bold"}, table.label]}>Påmeldingsfrist</Text>
-						<Text variant="labelMedium" style={table.value}>{registerDeadline ?? blank}</Text>
+						<Text variant="labelMedium" numberOfLines={1} style={table.value}>{registerDeadline ?? blank}</Text>
 					</View>
 
 				</View>
