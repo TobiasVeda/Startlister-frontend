@@ -1,7 +1,7 @@
 import {Card, Avatar, Text, useTheme} from "react-native-paper";
 import { View, StyleSheet } from "react-native";
 import { useRouter, type Href } from "expo-router";
-import { Meet } from "@/app";
+import { Meet } from "@/app/stevne";
 
 export interface Prop {
 	data: Meet;
@@ -16,7 +16,7 @@ export function MeetListItem(prop: Prop) {
 	return (
 		<Card
 			mode={"elevated"}
-			onPress={() => router.push("/"+meetId)}
+			onPress={() => router.push("/stevne/"+meetId)}
 			style={{marginTop: 3, marginHorizontal: 3}}
 		>
 			<Card.Content style={styles.content}>

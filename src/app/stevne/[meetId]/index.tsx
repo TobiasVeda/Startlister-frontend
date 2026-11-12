@@ -1,17 +1,17 @@
-import {useEffect, useState} from "react";
-import {ScrollView} from "@expo/ui";
+import React, {useState} from "react";
 import {ListItem} from "@/components/ListItem";
 import {Stack, useLocalSearchParams, usePathname} from "expo-router";
-import {ActivityIndicator} from "react-native-paper";
-import * as date from "@/utils/date"
+import {ActivityIndicator, Avatar, useTheme, Appbar} from "react-native-paper";
 import {useAsync} from "@/hooks/useAsync";
-import { apiMeetDetails } from "@/constants/backendEndpoints";
+import {apiMeetDetails} from "@/constants/backendEndpoints";
 import {MeetDetails} from "@/components/MeetDetails";
 import {DocumentListItem} from "@/components/DocumentListItem";
 import {SectionHeader} from "@/components/SectionHeader";
 import { router } from "expo-router";
-import { Icon } from 'react-native-paper';
-import {View} from "react-native";
+import {View, ScrollView} from "react-native";
+import Fetch from "@/utils/Fetch";
+import {HeaderBackButton} from "expo-router/react-navigation";
+
 
 export interface MeetDetails {
 	data:Data;
@@ -49,22 +49,27 @@ export default function Index() {
 	const [isLoading, setIsLoading] = useState(true);
 	const { meetId } = useLocalSearchParams<{meetId:string}>();
 	const path = usePathname();
+	const theme = useTheme();
 
 	useAsync(async () => {
-		const response = await fetch(`${apiMeetDetails}/${meetId}`);
-		const data:MeetDetails = await response.json();
-		setDetails(data);
-		setIsLoading(false);
+		try {
+			const response = await Fetch.get<MeetDetails>(`${apiMeetDetails}/${meetId}`);
+			const data:MeetDetails = response.data;
+			setDetails(data);
+			setIsLoading(false);
+		} catch (e) {
+			// TODO
+		}
 	}, [])
 
 	return (
-
 		<>
-			<Stack.Screen options={{
-				title: "Stevneoversikt",
-				headerRight: () =>
-					isLoading ? <View style={{ paddingRight: 16 }}><ActivityIndicator size={25} /></View> : null }}
-			/>
+			<Appbar.Header>
+				<Appbar.BackAction onPress={() => router.dismissTo("/")} />
+				<Appbar.Content title="Stevnedetaljer" />
+				{isLoading && <View style={{paddingRight: 16}}><ActivityIndicator size={25}/></View>}
+			</Appbar.Header>
+			
 			<ScrollView>
 
 				<MeetDetails data={details?.data}/>
@@ -75,7 +80,7 @@ export default function Index() {
 				{details?.lists?.hasResults && <ListItem title={"Resultater"} href={`${path}/resultater`}/>}
 				{details?.lists?.hasFinals && <ListItem title={"Finalelister"} href={`${path}/finalelister`}/>}
 				{details?.lists?.hasSchedule && <ListItem title={"Tidsskjema"} href={`${path}/tidsskjema`}/>}
-				{details?.lists?.hasClubsSwimmers && <ListItem subtitle={"(TODO:Personer)"} title={"Klubber & Personer"} href={`${path}/klubber`}/>}
+				{details?.lists?.hasClubsSwimmers && <ListItem subtitle={"(TODO: Lister for klubb)"} title={"Klubber & Personer"} href={`${path}/klubber`}/>}
 				{details?.lists?.hasLivetiming && <ListItem subtitle={"(TODO)"} title={"Livetiming"} href={"/"}/>}
 
 				<SectionHeader title={"Eksterne Dokumenter og Koblinger"}/>

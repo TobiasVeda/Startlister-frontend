@@ -11,10 +11,10 @@ export function SectionHeader({ title }: SectionHeaderProps) {
 
 	return (
 		<View
-			style={[styles.container, { backgroundColor: theme.colors.surfaceVariant }]}
+			style={[styles.container, { backgroundColor: theme.colors.secondary }]}
 			accessibilityRole="header"
 		>
-			<Text variant="titleSmall" style={{ color: theme.colors.onSurfaceVariant }} numberOfLines={1}>
+			<Text variant="titleSmall" style={{ color: theme.colors.onSecondary }} numberOfLines={1}>
 				{title}
 			</Text>
 		</View>
