@@ -34,7 +34,6 @@ export default function Index() {
     
     useAsync(async () => {
         setIsLoading(true);
-        console.log(`${apiMeetList}/${selectedYear}`);
         const response = await fetch(`${apiMeetList}/${selectedYear}`);
         if (!response.ok) {
             return;
