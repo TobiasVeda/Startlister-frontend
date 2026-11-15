@@ -19,7 +19,7 @@ type StartListItemProps = {
 
 type Medal = { colors: readonly [string, string]; text: string };
 
-const RADIUS = 12; // MD3 card default (3 * roundness)
+export const RADIUS = 12; // MD3 card default (3 * roundness)
 
 const GOLD: Medal = { colors: ["#FFE98A", "#D9A520"], text: "#3D2B00" };
 const SILVER: Medal = { colors: ["#F2F2F2", "#A9AEB3"], text: "#2B2F33" };
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		alignItems: "center",
 		gap: 10,
-		paddingVertical: 8,
+		paddingVertical: 3,
 		paddingHorizontal: 10,
 	},
 	badge: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
 	},
 	content: {
 		flex: 1,
-		gap: 2,
+		gap: 0,
 	},
 	classRow: {
 		flexDirection: "row",

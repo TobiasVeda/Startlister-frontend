@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {router, Stack, useLocalSearchParams} from "expo-router";
-import {Text, View, StyleSheet, SectionList} from "react-native";
+import {Text, View, StyleSheet, SectionList, FlatList} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
 import {apiFinals} from "@/constants/backendEndpoints";
 import Fetch from "@/utils/Fetch";
@@ -8,6 +8,9 @@ import {ActivityIndicator, Switch, useTheme, Button, Appbar} from "react-native-
 import {SectionHeader} from "@/components/SectionHeader";
 import {StartListItem} from "@/components/StartListItem";
 import Slider from "@react-native-community/slider";
+import FloatingToggle from "@/components/FloatingToggle";
+import {Collapsible} from "@/components/Collapsible";
+import {constructSearchParams} from "@/utils/requestUtils";
 
 export interface Discipline {
     name:string;
@@ -26,19 +29,25 @@ export interface Entry {
 export default function Index() {
     const [finals, setFinals] = useState<Discipline[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { meetId } = useLocalSearchParams<{meetId:string}>();
+    const { meetId, clubId, swimmerId } = useLocalSearchParams<{meetId:string, clubId?:string, swimmerId?:string}>();
     const [showDeletions, setShowDeletions] = useState<boolean>(false);
-    const [showReserves, setShowReserves] = useState<boolean>(false);
-    const [reserveCount, setReserveCount] = useState<number>(-1);
+    const [showReserves, setShowReserves] = useState<boolean>(true);
+    const [reserveCount, setReserveCount] = useState<number>(2);
     const theme = useTheme();
+    let pageHeader:string = "Finalelister";
+    if (clubId) {
+        pageHeader += " for klubb"
+    } else if (swimmerId) {
+        pageHeader += " for person"
+    }
     
     const DATA = useMemo(() => {
         
         return finals.map((x:Discipline) => {
             let currReserveCount = 0;
             return {
-                title: x.name,
-                data: x.entries.filter((y:Entry) => {
+                name: x.name,
+                entries: x.entries.filter((y:Entry) => {
                     
                     if (y.comment === "Strøket" && !showDeletions) {
                         return false;
@@ -60,8 +69,9 @@ export default function Index() {
     }, [finals, showDeletions, showReserves, reserveCount]);
 
     useAsync(async () => {
+        const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
         try {
-            const response = await Fetch.get<Discipline[]>(`${apiFinals}/${meetId}`);
+            const response = await Fetch.get<Discipline[]>(`${apiFinals}/${meetId}/${searchQuery}`);
             const data:Discipline[] = response.data;
             setFinals(data);
             setIsLoading(false);
@@ -93,15 +103,45 @@ export default function Index() {
         setReserveCount(reserveCount - 1);
     };
     
+    const renderDiscipline = (item:Discipline) => {
+        
+        return (
+            <Collapsible title={item.name} >
+                {item.entries.map((x:Entry, i:number) => (
+                    <StartListItem
+                        number={isNaN(parseInt(x.rank)) ? 0 : parseInt(x.rank)}
+                        name={x.name}
+                        club={x.club}
+                        class={x.class}
+                        time={x.endTime}
+                        text={x.comment}
+                        HC={""}
+                        p={isNaN(parseInt(x.rank)) || x.comment === "Strøket" || x.comment === "Reserve"}
+                    />
+                ))}
+            </Collapsible>
+        );
+    };
 
+    const backAction = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else if (swimmerId && clubId)  {
+            router.dismissTo(`/stevne/${meetId}/klubber/${clubId}/${swimmerId}`);
+        } else if (clubId) {
+            router.dismissTo(`/stevne/${meetId}/klubber/${clubId}`);
+        } else {
+            router.dismissTo(`/stevne/${meetId}`)
+        }
+    }
+    
     return (
         <>
             <Appbar.Header>
-                <Appbar.BackAction onPress={() => router.dismissTo(`/stevne/${meetId}`)} />
-                <Appbar.Content title="Finalelister" />
+                <Appbar.BackAction onPress={() => backAction()} />
+                <Appbar.Content title={pageHeader} />
                 {isLoading && <View style={{paddingRight: 16}}><ActivityIndicator size={25}/></View>}
             </Appbar.Header>
-           
 
             <View style={styles.controls}>
                 <View style={styles.toggle}>
@@ -134,25 +174,9 @@ export default function Index() {
                 )}
             </View>
             
-            <SectionList 
-                sections={DATA}
-                keyExtractor={(item, index) => item.name + index}
-                renderItem={({item}) => (
-                        <StartListItem
-                            number={isNaN(parseInt(item.rank)) ? 0 : parseInt(item.rank)}
-                            name={item.name}
-                            club={item.club}
-                            class={item.class}
-                            time={item.endTime}
-                            text={item.comment}
-                            HC={""}
-                            p={isNaN(parseInt(item.rank)) || item.comment === "Strøket" || item.comment === "Reserve"}
-                        />
-
-                )}
-                renderSectionHeader={({section: {title}}) => (
-                    <SectionHeader title={`Øvelse: ${title}`} />
-                )}
+            <FlatList
+                data={DATA}
+                renderItem={({item}) => renderDiscipline(item)}
             />
              
         </>

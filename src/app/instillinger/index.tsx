@@ -1,14 +1,14 @@
 import {Appbar, Button, IconButton, Portal, useTheme} from "react-native-paper";
 import React, {useState} from "react";
-import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 import { useColorScheme, View, Text } from 'react-native';
 import {useThemeProvider} from "@/contexts/ThemeProvider";
 import ColorPicker from "@/components/ColorPicker";
+import {useRouter} from "expo-router";
 
 export default function Index() {
 	const { isDarkTheme, isSystemDarkTheme, currentColor, useAutoColor, hasMD3Support, useSystemDarkTheme, useDarkTheme, useLightTheme, useSystemColor, useManualColor } = useThemeProvider();
 	const [viewPicker, setViewPicker] = useState<boolean>(false);
-	const theme = useTheme();
+	const router = useRouter();
 	
 	const setFromColorPicker = (color:string) => {
 		"worklet";
@@ -23,6 +23,7 @@ export default function Index() {
 	return (
 		<>
 			<Appbar.Header>
+				<Appbar.BackAction onPress={() => router.back()} />
 				<Appbar.Content title="Instillinger" />
 			</Appbar.Header>
 

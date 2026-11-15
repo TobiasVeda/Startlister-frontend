@@ -7,10 +7,11 @@ import {apiSwimmers} from "@/constants/backendEndpoints";
 import {ActivityIndicator, Appbar} from "react-native-paper";
 import Fetch from "@/utils/Fetch";
 import {SectionHeader} from "@/components/SectionHeader";
+import {constructSearchParams} from "@/utils/requestUtils";
 
 
 export interface Club {
-	name:string;
+	clubName:string;
 	hasStartlists:boolean;
 	hasHeatlists:boolean;
 	hasResults:boolean;
@@ -28,7 +29,7 @@ export interface Swimmer {
 
 export default function Index() {
 	const [swimmers, setSwimmers] = useState<Club>({
-		name: "-",
+		clubName: "-",
 		hasStartlists: false,
 		hasHeatlists: false,
 		hasResults: false,
@@ -61,11 +62,11 @@ export default function Index() {
 
 			<ScrollView>
 
-				<SectionHeader title={swimmers.name}/>
-				{swimmers.hasStartlists && <ListItem title={`Startlister for ${swimmers.name}`} href={"/"}/>}
-				{swimmers.hasHeatlists && <ListItem title={`Heatlister for ${swimmers.name}`} href={"/"}/>}
-				{swimmers.hasResults && <ListItem title={`Resultater for ${swimmers.name}`} href={"/"}/>}
-				{swimmers.hasFinals && <ListItem title={`Finalelister for ${swimmers.name}`} href={"/"}/>}
+				<SectionHeader title={swimmers.clubName}/>
+				{swimmers.hasStartlists && <ListItem title={`Startlister for ${swimmers.clubName}`} href={`/stevne/${meetId}/startlister/${constructSearchParams([{key: "clubId", value: clubId}])}`}/>}
+				{swimmers.hasHeatlists && <ListItem title={`Heatlister for ${swimmers.clubName}`} href={`/stevne/${meetId}/heatlister/${constructSearchParams([{key: "clubId", value: clubId}])}`}/>}
+				{swimmers.hasResults && <ListItem title={`Resultater for ${swimmers.clubName}`} href={`/stevne/${meetId}/resultater/${constructSearchParams([{key: "clubId", value: clubId}])}`}/>}
+				{swimmers.hasFinals && <ListItem title={`Finalelister for ${swimmers.clubName}`} href={`/stevne/${meetId}/finalelister/${constructSearchParams([{key: "clubId", value: clubId}])}`}/>}
 
 				<SectionHeader title={"Utøvere"}/>
 				{swimmers.swimmers.map((x:Swimmer, i) => (

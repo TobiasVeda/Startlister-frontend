@@ -1,12 +1,17 @@
 import React, {useMemo, useState} from "react";
 import {router, Stack, useLocalSearchParams} from "expo-router";
-import {Text, SectionList, View} from "react-native";
+import {Text, SectionList, View, StyleSheet, FlatList} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
 import {apiResults} from "@/constants/backendEndpoints";
 import Fetch from "@/utils/Fetch";
 import {SectionHeader} from "@/components/SectionHeader";
-import {ActivityIndicator, Appbar, Switch} from "react-native-paper";
+import {ActivityIndicator, Appbar, Card, Portal, Switch, useTheme} from "react-native-paper";
 import {StartListItem} from "@/components/StartListItem";
+import FloatingToggle from "@/components/FloatingToggle";
+import {Collapsible} from "@/components/Collapsible";
+import CollapsibleSecondary from "@/components/CollapsibleSecondary";
+import {constructSearchParams} from "@/utils/requestUtils";
+
 
 export interface Discipline {
     name:string;
@@ -26,6 +31,10 @@ export interface Result {
     reaction:string;
 }
 
+export interface DisciplineClass {
+    name:string;
+    class:Class[];
+}
 export interface Class {
     name:string;
     results:Result[];
@@ -34,21 +43,20 @@ export interface Class {
 export default function Index() {
     const [startlists, setStartlists] = useState<Discipline[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { meetId } = useLocalSearchParams<{meetId:string}>();
+    const { meetId, clubId, swimmerId } = useLocalSearchParams<{meetId:string, clubId?:string, swimmerId?:string}>();
     const [groupByClass, setGroupByClass] = useState<boolean>(true);
-
+    let pageHeader:string = "Resultater";
+    if (clubId) {
+        pageHeader += " for klubb"
+    } else if (swimmerId) {
+        pageHeader += " for person"
+    }
+    
     const DATA_NO_CLASS = useMemo(() => {
-
-        return startlists.map((x:Discipline) => {
-            return {
-                name: x.name,
-                data: x.results
-            }
-        });
-
+        return startlists;
     }, [startlists]);
 
-    const DATA_CLASS = useMemo(() => {
+    const DATA_CLASS:DisciplineClass[] = useMemo(() => {
 
         return startlists.map((x:Discipline) => {
             const startsMap = new Map<string, Result[]>();
@@ -70,15 +78,16 @@ export default function Index() {
 
             return {
                 name: x.name,
-                data: a
+                class: a
             }
         });
 
     }, [startlists]);
 
     useAsync(async () => {
+        const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
         try {
-            const response = await Fetch.get<Discipline[]>(`${apiResults}/${meetId}`);
+            const response = await Fetch.get<Discipline[]>(`${apiResults}/${meetId}/${searchQuery}`);
             const data:Discipline[] = response.data;
             setStartlists(data);
             setIsLoading(false);
@@ -87,70 +96,82 @@ export default function Index() {
         }
     }, [])
 
-    const renderNoClass = (item:Result) => {
+
+    
+    const renderNoClass = (item:Discipline) => {
         return(
-            <StartListItem
-                number={item.place}
-                name={item.name}
-                club={item.club}
-                class={item.class}
-                time={item.endTime}
-                text={""}
-                HC={item.HC !== "" ? `${item.HC} ${parseInt(item.percent)}%` : ""}
-            />
+                <Collapsible title={item.name}>
+                    {item.results.map((x:Result, i:number) => (
+                        <StartListItem
+                            number={x.place}
+                            name={x.name}
+                            club={x.club}
+                            class={x.class}
+                            time={x.endTime}
+                            text={""}
+                            HC={x.HC !== "" ? `${x.HC} ${parseInt(x.percent)}%` : ""}
+                        />
+                    ))}
+                </Collapsible>
         );
     }
-    const renderClass = (item:Class) => {
-        let i = 0;
+    const renderClass = (item:DisciplineClass) => {
+        
         return(
-            <>
-                <SectionHeader title={`Klasse: ${item.name}`} />
-                {item.results.map((x:Result) => (
-                    <StartListItem
-                        number={++i}
-                        name={x.name}
-                        club={x.club}
-                        class={""}
-                        time={x.endTime}
-                        text={""}
-                        HC={x.HC !== "" ? `${x.HC} ${parseInt(x.percent)}%` : ""}
-                        p={x.price === "p"}
-                    />
+            <Collapsible title={item.name}>
+                {item.class.map((x:Class, j:number) => (
+                    <CollapsibleSecondary title={x.name}>
+                        {x.results.map((y:Result, k:number) => (
+                            <StartListItem
+                                number={k+1}
+                                name={y.name}
+                                club={y.club}
+                                class={""}
+                                time={y.endTime}
+                                text={""}
+                                HC={y.HC !== "" ? `${y.HC} ${parseInt(y.percent)}%` : ""}
+                                p={y.price === "p"}
+                            />
+                        ))}
+                    </CollapsibleSecondary>
                 ))}
-            </>
+            </Collapsible>
         );
     };
 
+    const backAction = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else if (swimmerId && clubId)  {
+            router.dismissTo(`/stevne/${meetId}/klubber/${clubId}/${swimmerId}`);
+        } else if (clubId) {
+            router.dismissTo(`/stevne/${meetId}/klubber/${clubId}`);
+        } else {
+            router.dismissTo(`/stevne/${meetId}`)
+        }
+    }
+    
     return (
         <>
 
             <Appbar.Header>
-                <Appbar.BackAction onPress={() => router.dismissTo(`/stevne/${meetId}`)} />
-                <Appbar.Content title="Resultater" />
+                <Appbar.BackAction onPress={() => backAction()} />
+                <Appbar.Content title={pageHeader} />
                 {isLoading && <View style={{paddingRight: 16}}><ActivityIndicator size={25}/></View>}
             </Appbar.Header>
 
-            <View>
-                <Text>Vis resultater klassevis</Text>
-                <Switch value={groupByClass} onValueChange={setGroupByClass} />
-            </View>
+            <FloatingToggle text={"Vis resultater klassevis"} value={groupByClass} onValueChange={setGroupByClass} />
 
             {!groupByClass && (
-                <SectionList
-                    sections={DATA_NO_CLASS}
+                <FlatList 
+                    data={DATA_NO_CLASS}
                     renderItem={({item}) => renderNoClass(item)}
-                    renderSectionHeader={({section: {name}}) => (
-                        <SectionHeader title={`Øvelse: ${name}`} />
-                    )}
                 />
             )}
             {groupByClass && (
-                <SectionList
-                    sections={DATA_CLASS}
+                <FlatList
+                    data={DATA_CLASS}
                     renderItem={({item}) => renderClass(item)}
-                    renderSectionHeader={({section: {name}}) => (
-                        <SectionHeader title={`Øvelse: ${name}`} />
-                    )}
                 />
             )}
 

@@ -1,12 +1,17 @@
 import React, {useMemo, useState} from "react";
 import {router, Stack, useLocalSearchParams} from "expo-router";
-import {Text, SectionList, View} from "react-native";
+import {Text, SectionList, View, StyleSheet, FlatList, ScrollView} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
 import {apiStartlists} from "@/constants/backendEndpoints";
 import Fetch from "@/utils/Fetch";
 import {SectionHeader} from "@/components/SectionHeader";
-import {ActivityIndicator, Appbar, Switch} from "react-native-paper";
+import {ActivityIndicator, Appbar, Card, Portal, Switch, useTheme} from "react-native-paper";
 import {StartListItem} from "@/components/StartListItem";
+import {Collapsible} from "@/components/Collapsible";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
+import CollapsibleSecondary from "@/components/CollapsibleSecondary";
+import FloatingToggle from "@/components/FloatingToggle";
+import {constructSearchParams} from "@/utils/requestUtils";
 
 export interface Discipline {
     name:string;
@@ -37,21 +42,20 @@ export interface Class {
 export default function Index() {
     const [startlists, setStartlists] = useState<Discipline[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { meetId } = useLocalSearchParams<{meetId:string}>();
+    const { meetId, clubId, swimmerId } = useLocalSearchParams<{meetId:string, clubId?:string, swimmerId?:string}>();
     const [groupByClass, setGroupByClass] = useState<boolean>(false);
+    let pageHeader:string = "Startlister";
+    if (clubId) {
+        pageHeader += " for klubb"
+    } else if (swimmerId) {
+        pageHeader += " for person"
+    }
     
     const DATA_NO_CLASS = useMemo(() => {
-
-        return startlists.map((x:Discipline) => {
-            return {
-                name: x.name,
-                data: x.starts
-            }
-        });
-
+        return startlists;
     }, [startlists]);
 
-    const DATA_CLASS = useMemo(() => {
+    const DATA_CLASS:DisciplineClass[] = useMemo(() => {
 
         return startlists.map((x:Discipline) => {
             const starts = new Map<string, Start[]>();
@@ -73,15 +77,16 @@ export default function Index() {
             
             return {
                 name: x.name,
-                data: a
+                class: a
             }
         });
 
     }, [startlists]);
 
     useAsync(async () => {
+        const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
         try {
-            const response = await Fetch.get<Discipline[]>(`${apiStartlists}/${meetId}`);
+            const response = await Fetch.get<Discipline[]>(`${apiStartlists}/${meetId}/${searchQuery}`);
             const data:Discipline[] = response.data;
             setStartlists(data);
             setIsLoading(false);
@@ -90,68 +95,80 @@ export default function Index() {
         }
     }, [])
     
-    const renderNoClass = (item:Start) => {
+    
+    const renderNoClass = (item:Discipline) => {
         return(
-            <StartListItem
-                number={item.rank}
-                name={item.name}
-                club={item.club}
-                class={item.class}
-                time={item.regTime}
-                text={"Heat: " + item.heat + ", Bane: " + item.lane}
-                HC={item.HC !== "" ? `${item.HC} ${parseInt(item.percent)}%` : ""}
-            />
-        );
-    }
-    const renderClass = (item:Class) => {
-        let i = 0;
-        return(
-            <>
-                <SectionHeader title={`Klasse: ${item.name}`} />
-                {item.starts.map((x:Start) => (
+            <Collapsible title={item.name}>
+                {item.starts.map((x:Start, i:number) => (
                     <StartListItem
-                        number={++i}
+                        number={x.rank}
                         name={x.name}
                         club={x.club}
-                        class={""}
+                        class={x.class}
                         time={x.regTime}
                         text={"Heat: " + x.heat + ", Bane: " + x.lane}
                         HC={x.HC !== "" ? `${x.HC} ${parseInt(x.percent)}%` : ""}
                     />
                 ))}
-            </>
+            </Collapsible>
+            
+        );
+    }
+    const renderClass = (item:DisciplineClass, i:number) => {
+        
+        return(
+            <Collapsible title={item.name}>
+                {item.class.map((x:Class, j:number) => (
+                    <CollapsibleSecondary title={x.name}>
+                        {x.starts.map((y:Start, k:number) => (
+                            <StartListItem
+                                number={k}
+                                name={y.name}
+                                club={y.club}
+                                class={""}
+                                time={y.regTime}
+                                text={"Heat: " + y.heat + ", Bane: " + y.lane}
+                                HC={y.HC !== "" ? `${y.HC} ${parseInt(y.percent)}%` : ""}
+                            />
+                        ))}
+                    </CollapsibleSecondary>
+                ))}
+            </Collapsible>
         );
     };
+
+    const backAction = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else if (swimmerId && clubId)  {
+            router.dismissTo(`/stevne/${meetId}/klubber/${clubId}/${swimmerId}`);
+        } else if (clubId) {
+            router.dismissTo(`/stevne/${meetId}/klubber/${clubId}`);
+        } else {
+            router.dismissTo(`/stevne/${meetId}`)
+        }
+    }
 
     return (
         <>
             <Appbar.Header>
-                <Appbar.BackAction onPress={() => router.dismissTo(`/stevne/${meetId}`)} />
-                <Appbar.Content title="Startlister" />
+                <Appbar.BackAction onPress={() => backAction()} />
+                <Appbar.Content title={pageHeader} />
                 {isLoading && <View style={{paddingRight: 16}}><ActivityIndicator size={25}/></View>}
             </Appbar.Header>
-
-            <View>
-                <Text>Vis startlisten klassevis</Text>
-                <Switch value={groupByClass} onValueChange={setGroupByClass} />
-            </View>
+            
+            <FloatingToggle text={"Vis startlisten klassevis"} value={groupByClass} onValueChange={setGroupByClass} />
             
             {!groupByClass && (
-                <SectionList
-                    sections={DATA_NO_CLASS}
+                <FlatList 
+                    data={DATA_NO_CLASS}
                     renderItem={({item}) => renderNoClass(item)}
-                    renderSectionHeader={({section: {name}}) => (
-                        <SectionHeader title={`Øvelse: ${name}`} />
-                    )}
                 />
             )}
             {groupByClass && (
-                <SectionList
-                    sections={DATA_CLASS}
-                    renderItem={({item}) => renderClass(item)}
-                    renderSectionHeader={({section: {name}}) => (
-                        <SectionHeader title={`Øvelse: ${name}`} />
-                    )}
+                <FlatList
+                    data={DATA_CLASS}
+                    renderItem={({item, index}) => renderClass(item, index)}
                 />
             )}
 

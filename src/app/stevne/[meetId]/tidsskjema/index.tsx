@@ -1,12 +1,14 @@
 import React, {useMemo, useState} from "react";
 import {router, Stack, useLocalSearchParams} from "expo-router";
-import {Text, SectionList, View} from "react-native";
+import {Text, SectionList, View, FlatList} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
 import {ListItem} from "@/components/ListItem";
 import {apiSchedule} from "@/constants/backendEndpoints";
 import Fetch from "@/utils/Fetch";
 import {SectionHeader} from "@/components/SectionHeader";
 import {ActivityIndicator, Appbar} from "react-native-paper";
+import {ExpandableListItem} from "@/components/ExpandableListItem";
+import {Collapsible} from "@/components/Collapsible";
 
 export interface Session {
     name:string;
@@ -30,17 +32,8 @@ export default function Index() {
     const { meetId } = useLocalSearchParams<{meetId:string}>();
     
     const DATA = useMemo(() => {
-
-        return schedule.map((x:Session) => {
-            return {
-                name: x.name,
-                start: x.start,
-                end: x.end,
-                data: x.disciplines
-            }
-        });
-        
-    }, [schedule]);
+        return schedule;
+    }, [schedule])
     
     useAsync(async () => {
         try {
@@ -53,19 +46,26 @@ export default function Index() {
         }
     }, [])
     
-    const renderDiscipline = (item:Discipline) => {
+    
+    const renderSession = (item:Session, i:number) => {
         return (
-            <>
-                <ListItem title={item.name} subtitle={item.start} href={"/"}/>
-                {item.heats.map((x:Heat, i:number)=>(
-                    <>
-                        <Text>
-                            Heat: {x.number}, Starttid: {x.start}
-                        </Text>
-                    </>
+            <Collapsible
+                title={item.name}
+                rightText={`Start: ${item.start} Slutt: ${item.end}`}
+            >
+                
+                {item.disciplines.map((x:Discipline, j:number) => (
+                    <ExpandableListItem
+                        title={x.name}
+                        rightText={x.start}
+                        details={x.heats.map((y:Heat, k:number)=> ({
+                            label: `Heat ${y.number}`,
+                            value: `${y.start}`
+                        }))}
+                    />
                 ))}
-        
-            </>
+                
+            </Collapsible>
         );
     };
     
@@ -77,12 +77,9 @@ export default function Index() {
                 {isLoading && <View style={{paddingRight: 16}}><ActivityIndicator size={25}/></View>}
             </Appbar.Header>
 
-            <SectionList
-                sections={DATA}
-                renderItem={({item}) => renderDiscipline(item)}
-                renderSectionHeader={({section: {name, start, end}}) => (
-                    <SectionHeader title={`${name} Start: ${start} Slutt: ${end}`} />
-                )}
+            <FlatList
+                data={DATA} 
+                renderItem={({item, index}) => renderSession(item, index)}
             />
 
         </>

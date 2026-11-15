@@ -56,7 +56,7 @@ export default function ColorPicker(props: Props) {
 						sliderThickness={25}
 						thumbShape="circle"
 						thumbSize={25}
-						onChangeJS={(value) => setColor(value.hex)}
+						onChange={(value) => setColor(value.hex)}
 					>
 						<HueCircular containerStyle={styles.hueContainer} thumbColor={initialColor}>
 							<Panel1 style={styles.panel} thumbColor={initialColor} boundedThumb />
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 	},
 	panel: {
+		height: "65%",
 		width: "65%",
 		aspectRatio: 1,
 		alignSelf: "center",
