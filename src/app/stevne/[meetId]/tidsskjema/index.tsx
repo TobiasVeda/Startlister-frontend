@@ -6,7 +6,7 @@ import {ListItem} from "@/components/ListItem";
 import {apiSchedule} from "@/constants/backendEndpoints";
 import Fetch from "@/utils/Fetch";
 import {SectionHeader} from "@/components/SectionHeader";
-import {ActivityIndicator, Appbar} from "react-native-paper";
+import {ActivityIndicator, Appbar, useTheme} from "react-native-paper";
 import {ExpandableListItem} from "@/components/ExpandableListItem";
 import {Collapsible} from "@/components/Collapsible";
 
@@ -30,6 +30,7 @@ export default function Index() {
     const [schedule, setSchedule] = useState<Session[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { meetId } = useLocalSearchParams<{meetId:string}>();
+    const theme = useTheme();
     
     const DATA = useMemo(() => {
         return schedule;
@@ -58,11 +59,14 @@ export default function Index() {
                     <ExpandableListItem
                         title={x.name}
                         rightText={x.start}
-                        details={x.heats.map((y:Heat, k:number)=> ({
-                            label: `Heat ${y.number}`,
-                            value: `${y.start}`
-                        }))}
-                    />
+                    >
+                        {x.heats.map((y:Heat, k:number)=> (
+                            <View style={{justifyContent: "space-between", flexDirection: "row"}}>
+                                <Text style={{color: theme.colors.onPrimary}}>Heat {y.number}</Text>
+                                <Text style={{color: theme.colors.onPrimary}}>{y.start}</Text>
+                            </View>
+                        ))}
+                    </ExpandableListItem>
                 ))}
                 
             </Collapsible>

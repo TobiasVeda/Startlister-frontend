@@ -74,13 +74,13 @@ export default function Index() {
 
 				<MeetDetails data={details?.data}/>
 
-				<SectionHeader title={"Søkbare Lister"}/>
+				<SectionHeader title={"Søkbare Lister"} rightText={"TODO: Clicking on ListItems in lists"}/>
 				{details?.lists?.hasStartlist && <ListItem subtitle={"TODO: Need better placement for toggle"} title={"Startlister"} href={`${path}/startlister`}/>}
 				{details?.lists?.hasHeatlist && <ListItem subtitle={"TODO: Need fallback for missing schedule"} title={"Heatlister"} href={`${path}/heatlister`}/>}
 				{details?.lists?.hasResults && <ListItem subtitle={"TODO: Need better placement for toggle"} title={"Resultater"} href={`${path}/resultater`}/>}
 				{details?.lists?.hasFinals && <ListItem subtitle={"TODO: Need better placement for toggle"} title={"Finalelister"} href={`${path}/finalelister`}/>}
 				{details?.lists?.hasSchedule && <ListItem subtitle={"Done"} title={"Tidsskjema"} href={`${path}/tidsskjema`}/>}
-				{details?.lists?.hasClubsSwimmers && <ListItem subtitle={"TODO: Lists for swimmers"} title={"Klubber & Personer"} href={`${path}/klubber`}/>}
+				{details?.lists?.hasClubsSwimmers && <ListItem subtitle={"Done"} title={"Klubber & Personer"} href={`${path}/klubber`}/>}
 				{details?.lists?.hasLivetiming && <ListItem subtitle={"TODO"} title={"Livetiming"} href={"/"}/>}
 
 				<SectionHeader title={"Eksterne Dokumenter og Koblinger"}/>

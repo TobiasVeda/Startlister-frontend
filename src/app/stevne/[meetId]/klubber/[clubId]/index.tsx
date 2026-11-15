@@ -8,6 +8,8 @@ import {ActivityIndicator, Appbar} from "react-native-paper";
 import Fetch from "@/utils/Fetch";
 import {SectionHeader} from "@/components/SectionHeader";
 import {constructSearchParams} from "@/utils/requestUtils";
+import {ExpandableListItem} from "@/components/ExpandableListItem";
+import SmallListItem from "@/components/SmallListItem";
 
 
 export interface Club {
@@ -70,13 +72,14 @@ export default function Index() {
 
 				<SectionHeader title={"Utøvere"}/>
 				{swimmers.swimmers.map((x:Swimmer, i) => (
-					<>
-						<ListItem icon={"account-outline"} title={x.name} href={"/"}/>
-						{x.hasStartlists && "Startliste"}
-						{x.hasHeatlists && "Heatliste"}
-						{x.hasResults && "Resultater"}
-						{x.hasFinals && "Finalelister"}
-					</>
+					<ExpandableListItem title={x.name}>
+							<View style={{justifyContent: "space-between", flexDirection: "column"}}>
+								{x.hasStartlists && <SmallListItem squareBottom title={`Startlister for ${x.name}`} href={`/stevne/${meetId}/startlister/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
+								{x.hasHeatlists && <SmallListItem squareTop squareBottom title={`Heatlister for ${x.name}`} href={`/stevne/${meetId}/heatlister/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
+								{x.hasResults && <SmallListItem squareTop squareBottom title={`Resultater for ${x.name}`} href={`/stevne/${meetId}/resultater/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
+								{x.hasFinals && <SmallListItem squareTop title={`Finalelister for ${x.name}`} href={`/stevne/${meetId}/finalelister/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
+							</View>
+					</ExpandableListItem>
 				))}
 			
 			</ScrollView>

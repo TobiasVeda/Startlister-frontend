@@ -10,30 +10,25 @@ import Animated, {
 } from "react-native-reanimated";
 import { RADIUS } from "@/components/StartListItem";
 
-export type ExpandableDetail = {
-	label: string;
-	value: string;
-};
-
 export interface ExpandableListItemProps {
 	title: string;
 	rightText?: string;
-	details: ExpandableDetail[];
 	defaultExpanded?: boolean;
+	children?: React.ReactNode;
 }
 
 export function ExpandableListItem({
 									   title,
 									   rightText,
-									   details,
 									   defaultExpanded = false,
+									   children,
 								   }: ExpandableListItemProps) {
 	const theme = useTheme();
 	const [expanded, setExpanded] = useState<boolean>(defaultExpanded);
 
 	// 0 = collapsed, 1 = expanded
 	const progress = useDerivedValue(
-		() => withTiming(expanded ? 1 : 0, { duration: 220 }),
+		() => withTiming(expanded ? 1 : 0, { duration: 150 }),
 		[expanded]
 	);
 	const contentHeight = useSharedValue(0);
@@ -94,16 +89,7 @@ export function ExpandableListItem({
 						contentHeight.value = e.nativeEvent.layout.height;
 					}}
 				>
-					{details.map((d, i) => (
-						<View key={i} style={styles.detailRow}>
-							<Text variant="bodyMedium" style={{ color: theme.colors.onPrimary }}>
-								{d.label}
-							</Text>
-							<Text variant="bodyMedium" style={[styles.time, { color: theme.colors.onPrimary }]}>
-								{d.value}
-							</Text>
-						</View>
-					))}
+					{children}
 				</View>
 			</Animated.View>
 		</View>
@@ -155,10 +141,5 @@ const styles = StyleSheet.create({
 		paddingBottom: 10,
 		paddingHorizontal: 14,
 		gap: 4,
-	},
-	detailRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
 	},
 });
