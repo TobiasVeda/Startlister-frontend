@@ -8,6 +8,8 @@ import {ActivityIndicator, Appbar} from "react-native-paper";
 import HeatBlock from "@/components/HeatBlock";
 import {Collapsible} from "@/components/Collapsible";
 import {constructSearchParams} from "@/utils/requestUtils";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keyHeatlists} from "@/constants/storageKeys";
 
 export interface Discipline {
     name:string,
@@ -34,9 +36,15 @@ export interface Start {
 }
 
 export default function Index() {
-    const [heatlists, setHeatlists] = useState<Discipline[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const { meetId, clubId, swimmerId } = useLocalSearchParams<{meetId:string, clubId?:string, swimmerId?:string}>();
+    const [isLoading, setIsLoading] = useState(true);
+    const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
+    const [heatlists, setHeatlists] = useLazyFetch<Discipline[]>(
+        `${keyHeatlists}/${meetId}/${searchQuery}`,
+        `${apiHeatlists}/${meetId}/${searchQuery}`,
+        [],
+        setIsLoading
+    );
     let pageHeader:string = "Heatlister";
     if (clubId) {
         pageHeader += " for klubb"

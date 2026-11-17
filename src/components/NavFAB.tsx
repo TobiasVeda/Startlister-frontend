@@ -25,7 +25,7 @@ export default function NavFAB() {
 		routes.push({
 			icon: 'cog',
 			label: 'Instillinger',
-			onPress: () => router.dismissTo("/instillinger"),
+			onPress: () => router.push("/instillinger"),
 		})
 
 		if (segments.length > 2) {

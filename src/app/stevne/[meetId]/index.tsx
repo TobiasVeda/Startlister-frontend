@@ -11,6 +11,8 @@ import { router } from "expo-router";
 import {View, ScrollView} from "react-native";
 import Fetch from "@/utils/Fetch";
 import {HeaderBackButton} from "expo-router/react-navigation";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keyMeetDetails} from "@/constants/storageKeys";
 
 
 export interface MeetDetails {
@@ -44,23 +46,43 @@ export interface Document {
 	url:string;
 }
 
+export const initialValue: MeetDetails = {
+	data: {
+		location: "-",
+		hostClub: "-",
+		meetName: "-",
+		from: "-",
+		to: "",
+		numberOfLanes: "-",
+		poolLength: "-",
+		poolName: "-",
+		meetType: "-",
+		registerDeadline: "-",
+	},
+	lists: {
+		hasStartlist: false,
+		hasHeatlist: false,
+		hasResults: false,
+		hasFinals: false,
+		hasSchedule: false,
+		hasClubsSwimmers: false,
+		hasLivetiming: false,
+	},
+	documents: [],
+};
+
 export default function Index() {
-	const [details, setDetails] = useState<MeetDetails>();
-	const [isLoading, setIsLoading] = useState(true);
 	const { meetId } = useLocalSearchParams<{meetId:string}>();
 	const path = usePathname();
-	const theme = useTheme();
 
-	useAsync(async () => {
-		try {
-			const response = await Fetch.get<MeetDetails>(`${apiMeetDetails}/${meetId}`);
-			const data:MeetDetails = response.data;
-			setDetails(data);
-			setIsLoading(false);
-		} catch (e) {
-			// TODO
-		}
-	}, [])
+	const [isLoading, setIsLoading] = useState(true);
+	const [details, setDetails] = useLazyFetch<MeetDetails>(
+		`${keyMeetDetails}/${meetId}`, 
+		`${apiMeetDetails}/${meetId}`, 
+		initialValue, 
+		setIsLoading
+	);
+	
 
 	return (
 		<>
@@ -74,18 +96,18 @@ export default function Index() {
 
 				<MeetDetails data={details?.data}/>
 
-				<SectionHeader title={"Søkbare Lister"} rightText={"TODO: Clicking on ListItems in lists"}/>
-				{details?.lists?.hasStartlist && <ListItem subtitle={"TODO: Need better placement for toggle"} title={"Startlister"} href={`${path}/startlister`}/>}
-				{details?.lists?.hasHeatlist && <ListItem subtitle={"TODO: Need fallback for missing schedule"} title={"Heatlister"} href={`${path}/heatlister`}/>}
-				{details?.lists?.hasResults && <ListItem subtitle={"TODO: Need better placement for toggle"} title={"Resultater"} href={`${path}/resultater`}/>}
-				{details?.lists?.hasFinals && <ListItem subtitle={"TODO: Need better placement for toggle"} title={"Finalelister"} href={`${path}/finalelister`}/>}
-				{details?.lists?.hasSchedule && <ListItem subtitle={"Done"} title={"Tidsskjema"} href={`${path}/tidsskjema`}/>}
-				{details?.lists?.hasClubsSwimmers && <ListItem subtitle={"Done"} title={"Klubber & Personer"} href={`${path}/klubber`}/>}
-				{details?.lists?.hasLivetiming && <ListItem subtitle={"TODO"} title={"Livetiming"} href={"/"}/>}
+				<SectionHeader title={"Søkbare Lister"}/>
+				{details?.lists?.hasStartlist && <ListItem title={"Startlister"} href={`${path}/startlister`}/>}
+				{details?.lists?.hasHeatlist && <ListItem title={"Heatlister"} href={`${path}/heatlister`}/>}
+				{details?.lists?.hasResults && <ListItem title={"Resultater"} href={`${path}/resultater`}/>}
+				{details?.lists?.hasFinals && <ListItem title={"Finalelister"} href={`${path}/finalelister`}/>}
+				{details?.lists?.hasSchedule && <ListItem title={"Tidsskjema"} href={`${path}/tidsskjema`}/>}
+				{details?.lists?.hasClubsSwimmers && <ListItem title={"Klubber & Personer"} href={`${path}/klubber`}/>}
+				{details?.lists?.hasLivetiming && <ListItem subtitle={"Coming Soon™"} title={"Livetiming"} href={`${path}/livetiming`}/>}
 
 				<SectionHeader title={"Eksterne Dokumenter og Koblinger"}/>
 				{details?.documents?.map((x, i:number)=>(
-					<DocumentListItem key={"doc"+i} title={x.name} href={x.url}/>
+					<DocumentListItem key={"doc"+i} title={x.name} subtitle={x.url} href={x.url}/>
 				))}
 			</ScrollView>
 		</>

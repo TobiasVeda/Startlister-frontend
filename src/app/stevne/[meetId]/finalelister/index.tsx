@@ -5,12 +5,12 @@ import {useAsync} from "@/hooks/useAsync";
 import {apiFinals} from "@/constants/backendEndpoints";
 import Fetch from "@/utils/Fetch";
 import {ActivityIndicator, Switch, useTheme, Button, Appbar} from "react-native-paper";
-import {SectionHeader} from "@/components/SectionHeader";
 import {StartListItem} from "@/components/StartListItem";
 import Slider from "@react-native-community/slider";
-import FloatingToggle from "@/components/FloatingToggle";
 import {Collapsible} from "@/components/Collapsible";
 import {constructSearchParams} from "@/utils/requestUtils";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keyFinals} from "@/constants/storageKeys";
 
 export interface Discipline {
     name:string;
@@ -27,15 +27,24 @@ export interface Entry {
 }
 
 export default function Index() {
-    const [finals, setFinals] = useState<Discipline[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const { meetId, clubId, swimmerId } = useLocalSearchParams<{meetId:string, clubId?:string, swimmerId?:string}>();
+    const theme = useTheme();
+    
+    const [isLoading, setIsLoading] = useState(true);
+    const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
+    const [finals, setFinals] = useLazyFetch<Discipline[]>(
+        `${keyFinals}/${meetId}/${searchQuery}`,
+        `${apiFinals}/${meetId}/${searchQuery}`, 
+        [], 
+        setIsLoading
+    );
+    
     const [showDeletions, setShowDeletions] = useState<boolean>(false);
     const [showReserves, setShowReserves] = useState<boolean>(true);
     const [reserveCount, setReserveCount] = useState<number>(2);
-    const theme = useTheme();
+    
     let pageHeader:string = "Finalelister";
-    if (clubId) {
+    if (clubId) { // If both, club will take priority (API behaviour)
         pageHeader += " for klubb"
     } else if (swimmerId) {
         pageHeader += " for person"
@@ -67,18 +76,6 @@ export default function Index() {
         });
         
     }, [finals, showDeletions, showReserves, reserveCount]);
-
-    useAsync(async () => {
-        const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
-        try {
-            const response = await Fetch.get<Discipline[]>(`${apiFinals}/${meetId}/${searchQuery}`);
-            const data:Discipline[] = response.data;
-            setFinals(data);
-            setIsLoading(false);
-        } catch (e) {
-            // TODO
-        }
-    }, [])
     
     const reserveCountSubtitle = () => {
         if (reserveCount === 0) {

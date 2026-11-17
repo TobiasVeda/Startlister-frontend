@@ -6,6 +6,8 @@ import {ListItem} from "@/components/ListItem";
 import {apiClubs} from "@/constants/backendEndpoints";
 import {ActivityIndicator, Appbar} from "react-native-paper";
 import Fetch from "@/utils/Fetch";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keyClubs} from "@/constants/storageKeys";
 
 export interface Club {
     name:string;
@@ -13,21 +15,17 @@ export interface Club {
 }
 
 export default function Index() {
-    const [clubs, setClubs] = useState<Club[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const { meetId } = useLocalSearchParams<{meetId:string}>();
     const path = usePathname();
-
-    useAsync(async () => {
-        try {
-            const response = await Fetch.get<Club[]>(`${apiClubs}/${meetId}`);
-            const data:Club[] = response.data;
-            setClubs(data);
-            setIsLoading(false);
-        } catch (e) {
-            // TODO
-        }
-    }, [])
+    
+    const [isLoading, setIsLoading] = useState(true);
+    const [clubs, setClubs] = useLazyFetch<Club[]>(
+        `${keyClubs}/${meetId}`,
+        `${apiClubs}/${meetId}`,
+        [],
+        setIsLoading
+    );
+    
 
     return (
         <>

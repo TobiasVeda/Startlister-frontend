@@ -9,6 +9,8 @@ import {SectionHeader} from "@/components/SectionHeader";
 import {ActivityIndicator, Appbar, useTheme} from "react-native-paper";
 import {ExpandableListItem} from "@/components/ExpandableListItem";
 import {Collapsible} from "@/components/Collapsible";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keySchedule} from "@/constants/storageKeys";
 
 export interface Session {
     name:string;
@@ -27,10 +29,15 @@ export interface Heat {
 }
 
 export default function Index() {
-    const [schedule, setSchedule] = useState<Session[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const { meetId } = useLocalSearchParams<{meetId:string}>();
     const theme = useTheme();
+    const [isLoading, setIsLoading] = useState(true);
+    const [schedule, setSchedule] = useLazyFetch<Session[]>(
+        `${keySchedule}/${meetId}`,
+        `${apiSchedule}/${meetId}`,
+        [],
+        setIsLoading
+    );
     
     const DATA = useMemo(() => {
         return schedule;

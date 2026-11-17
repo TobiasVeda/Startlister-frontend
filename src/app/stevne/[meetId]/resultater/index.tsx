@@ -11,6 +11,8 @@ import FloatingToggle from "@/components/FloatingToggle";
 import {Collapsible} from "@/components/Collapsible";
 import CollapsibleSecondary from "@/components/CollapsibleSecondary";
 import {constructSearchParams} from "@/utils/requestUtils";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keyResults} from "@/constants/storageKeys";
 
 
 export interface Discipline {
@@ -41,9 +43,16 @@ export interface Class {
 }
 
 export default function Index() {
-    const [startlists, setStartlists] = useState<Discipline[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const { meetId, clubId, swimmerId } = useLocalSearchParams<{meetId:string, clubId?:string, swimmerId?:string}>();
+    const [isLoading, setIsLoading] = useState(true);
+    const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
+    const [startlists, setStartlists] = useLazyFetch<Discipline[]>(
+        `${keyResults}/${meetId}/${searchQuery}`,
+        `${apiResults}/${meetId}/${searchQuery}`,
+        [],
+        setIsLoading
+    );
+    
     const [groupByClass, setGroupByClass] = useState<boolean>(true);
     let pageHeader:string = "Resultater";
     if (clubId) {
@@ -84,19 +93,7 @@ export default function Index() {
 
     }, [startlists]);
 
-    useAsync(async () => {
-        const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
-        try {
-            const response = await Fetch.get<Discipline[]>(`${apiResults}/${meetId}/${searchQuery}`);
-            const data:Discipline[] = response.data;
-            setStartlists(data);
-            setIsLoading(false);
-        } catch (e) {
-            // TODO
-        }
-    }, [])
-
-
+    
     
     const renderNoClass = (item:Discipline) => {
         return(

@@ -12,6 +12,8 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import CollapsibleSecondary from "@/components/CollapsibleSecondary";
 import FloatingToggle from "@/components/FloatingToggle";
 import {constructSearchParams} from "@/utils/requestUtils";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keyStartlists} from "@/constants/storageKeys";
 
 export interface Discipline {
     name:string;
@@ -40,9 +42,15 @@ export interface Class {
 }
 
 export default function Index() {
-    const [startlists, setStartlists] = useState<Discipline[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { meetId, clubId, swimmerId } = useLocalSearchParams<{meetId:string, clubId?:string, swimmerId?:string}>();
+    const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
+    const [startlists, setStartlists] = useLazyFetch<Discipline[]>(
+        `${keyStartlists}/${meetId}/${searchQuery}`,
+        `${apiStartlists}/${meetId}/${searchQuery}`,
+        [],
+        setIsLoading
+    );
     const [groupByClass, setGroupByClass] = useState<boolean>(false);
     let pageHeader:string = "Startlister";
     if (clubId) {
@@ -82,18 +90,7 @@ export default function Index() {
         });
 
     }, [startlists]);
-
-    useAsync(async () => {
-        const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
-        try {
-            const response = await Fetch.get<Discipline[]>(`${apiStartlists}/${meetId}/${searchQuery}`);
-            const data:Discipline[] = response.data;
-            setStartlists(data);
-            setIsLoading(false);
-        } catch (e) {
-            // TODO
-        }
-    }, [])
+    
     
     
     const renderNoClass = (item:Discipline) => {

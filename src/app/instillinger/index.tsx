@@ -34,7 +34,7 @@ export default function Index() {
 			)}
 			
 			<View>
-				<Text>Mørkt tema </Text>
+				<Text>Mørkt/lyst tema </Text>
 				<Button 
 					mode={isSystemDarkTheme ? "contained" : "elevated"} 
 					onPress={() => useSystemDarkTheme()}
@@ -55,7 +55,8 @@ export default function Index() {
 				</Button>
 			</View>
 
-			{(!hasMD3Support || !useAutoColor) && <View>
+			<Text>Farger</Text>
+			<View style={{flexDirection: "row"}}>
 
                 <IconButton
 					icon={"circle-half-full"}
@@ -109,7 +110,7 @@ export default function Index() {
                 />
 				
 
-			</View>}
+			</View>
 			
 		</>
 	);

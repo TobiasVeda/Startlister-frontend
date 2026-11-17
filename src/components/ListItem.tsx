@@ -56,7 +56,7 @@ export function ListItem({
                 <View style={styles.content}>
                     <Text variant="titleMedium" numberOfLines={1}>{title}</Text>
                     {subtitle ? (
-                        <Text variant="bodySmall" numberOfLines={1}>
+                        <Text variant="bodySmall" style={{marginVertical: -3.5}} numberOfLines={1}>
                             {subtitle}
                         </Text>
                     ) : null}
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
-        paddingVertical: 8,
+        paddingVertical: 9,
         paddingHorizontal: 10,
     },
     content: {

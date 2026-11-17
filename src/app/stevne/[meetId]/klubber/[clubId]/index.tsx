@@ -10,6 +10,8 @@ import {SectionHeader} from "@/components/SectionHeader";
 import {constructSearchParams} from "@/utils/requestUtils";
 import {ExpandableListItem} from "@/components/ExpandableListItem";
 import SmallListItem from "@/components/SmallListItem";
+import {useLazyFetch} from "@/hooks/useLazyFetch";
+import {keySwimmers} from "@/constants/storageKeys";
 
 
 export interface Club {
@@ -30,28 +32,23 @@ export interface Swimmer {
 }
 
 export default function Index() {
-	const [swimmers, setSwimmers] = useState<Club>({
-		clubName: "-",
-		hasStartlists: false,
-		hasHeatlists: false,
-		hasResults: false,
-		hasFinals: false,
-		swimmers: []
-	});
 	const [isLoading, setIsLoading] = useState(true);
 	const { meetId } = useGlobalSearchParams<{meetId:string}>();
 	const { clubId } = useLocalSearchParams<{clubId:string}>();
-
-	useAsync(async () => {
-		try {
-			const response = await Fetch.get<Club>(`${apiSwimmers}/${meetId}/${clubId}`);
-			const data:Club = response.data;
-			setSwimmers(data);
-			setIsLoading(false);
-		} catch (e) {
-			// TODO
-		}
-	}, [])
+	const [swimmers, setSwimmers] = useLazyFetch<Club>(
+		`${keySwimmers}/${meetId}/${clubId}`,
+		`${apiSwimmers}/${meetId}/${clubId}`,
+		{
+			clubName: "-",
+			hasStartlists: false,
+			hasHeatlists: false,
+			hasResults: false,
+			hasFinals: false,
+			swimmers: []
+		},
+		setIsLoading
+	);
+	
 
 	return (
 		<>

@@ -2,7 +2,7 @@ import {Dispatch, SetStateAction, useEffect, useState} from "react";
 import Storage from 'expo-sqlite/kv-store';
 
 // useState wrapper with persistence in SQLite DB
-export function useSyncStorage<T>(key: string, initialValue?: T): [T, Dispatch<SetStateAction<T>>] {
+export function useSyncStorage<T>(key:string, initialValue?: T): [T, Dispatch<SetStateAction<T>>] {
 	
 	const [state, setState] = useState<T>(() => {
 
