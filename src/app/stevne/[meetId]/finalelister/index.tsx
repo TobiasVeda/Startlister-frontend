@@ -103,7 +103,7 @@ export default function Index() {
     const renderDiscipline = (item:Discipline) => {
         
         return (
-            <Collapsible title={item.name} >
+            <Collapsible title={item.name} defaultExpanded={!!swimmerId || !!clubId}>
                 {item.entries.map((x:Entry, i:number) => (
                     <StartListItem
                         number={isNaN(parseInt(x.rank)) ? 0 : parseInt(x.rank)}

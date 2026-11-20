@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useMemo, useState} from "react";
 import {router, Stack, useGlobalSearchParams, useLocalSearchParams, usePathname} from "expo-router";
 import {Text, View, ScrollView} from "react-native";
 import {useAsync} from "@/hooks/useAsync";
@@ -16,6 +16,7 @@ import {keySwimmers} from "@/constants/storageKeys";
 
 export interface Club {
 	clubName:string;
+	clubId:number;
 	hasStartlists:boolean;
 	hasHeatlists:boolean;
 	hasResults:boolean;
@@ -24,7 +25,7 @@ export interface Club {
 }
 export interface Swimmer {
 	name:string;
-	clubId:number;
+	swimmerId:number;
 	hasStartlists:boolean;
 	hasHeatlists:boolean;
 	hasResults:boolean;
@@ -40,6 +41,7 @@ export default function Index() {
 		`${apiSwimmers}/${meetId}/${clubId}`,
 		{
 			clubName: "-",
+			clubId: 0,
 			hasStartlists: false,
 			hasHeatlists: false,
 			hasResults: false,
@@ -49,6 +51,26 @@ export default function Index() {
 		setIsLoading
 	);
 	
+	const isSquared = useMemo(() => {
+		return [
+			{
+				top: false, 
+				bottom: swimmers.hasHeatlists || swimmers.hasResults || swimmers.hasFinals
+			},
+			{
+				top: swimmers.hasStartlists,
+				bottom: swimmers.hasResults || swimmers.hasFinals
+			},
+			{
+				top: swimmers.hasStartlists || swimmers.hasHeatlists,
+				bottom: swimmers.hasFinals
+			},
+			{
+				top: swimmers.hasStartlists || swimmers.hasHeatlists || swimmers.hasResults,
+				bottom: false
+			},
+		];
+	}, [swimmers]);
 
 	return (
 		<>
@@ -71,10 +93,10 @@ export default function Index() {
 				{swimmers.swimmers.map((x:Swimmer, i) => (
 					<ExpandableListItem title={x.name}>
 							<View style={{justifyContent: "space-between", flexDirection: "column"}}>
-								{x.hasStartlists && <SmallListItem squareBottom title={`Startlister for ${x.name}`} href={`/stevne/${meetId}/startlister/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
-								{x.hasHeatlists && <SmallListItem squareTop squareBottom title={`Heatlister for ${x.name}`} href={`/stevne/${meetId}/heatlister/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
-								{x.hasResults && <SmallListItem squareTop squareBottom title={`Resultater for ${x.name}`} href={`/stevne/${meetId}/resultater/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
-								{x.hasFinals && <SmallListItem squareTop title={`Finalelister for ${x.name}`} href={`/stevne/${meetId}/finalelister/${constructSearchParams([{key: "swimmerId", value: "1389"}])}`}/>}
+								{x.hasStartlists && <SmallListItem squareTop={isSquared[0].top} squareBottom={isSquared[0].bottom} title={`Startlister for ${x.name}`} href={`/stevne/${meetId}/startlister/${constructSearchParams([{key: "swimmerId", value: `${x.swimmerId}`}])}`}/>}
+								{x.hasHeatlists && <SmallListItem squareTop={isSquared[1].top} squareBottom={isSquared[1].bottom} title={`Heatlister for ${x.name}`} href={`/stevne/${meetId}/heatlister/${constructSearchParams([{key: "swimmerId", value: `${x.swimmerId}`}])}`}/>}
+								{x.hasResults && <SmallListItem squareTop={isSquared[2].top} squareBottom={isSquared[2].bottom} title={`Resultater for ${x.name}`} href={`/stevne/${meetId}/resultater/${constructSearchParams([{key: "swimmerId", value: `${x.swimmerId}`}])}`}/>}
+								{x.hasFinals && <SmallListItem squareTop={isSquared[3].top} squareBottom={isSquared[3].bottom} title={`Finalelister for ${x.name}`} href={`/stevne/${meetId}/finalelister/${constructSearchParams([{key: "swimmerId", value: `${x.swimmerId}`}])}`}/>}
 							</View>
 					</ExpandableListItem>
 				))}

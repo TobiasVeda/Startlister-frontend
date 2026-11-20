@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, ScrollView, FlatList } from "react-native";
+import {Text, View, StyleSheet, ScrollView, FlatList, Platform} from "react-native";
 import React, {useEffect, useState, useMemo} from "react";
 import {useAsync} from "@/hooks/useAsync";
 import {apiMeetList} from "@/constants/backendEndpoints";
@@ -6,6 +6,7 @@ import {MeetListItem} from "@/components/MeetListItem";
 import {Searchbar, useTheme} from 'react-native-paper';
 import { ActivityIndicator, Appbar } from 'react-native-paper';
 import {Dropdown} from "react-native-paper-dropdown";
+import {AlertPopup} from "@/components/alert";
 
 export interface Data {
     meets: Meet[];
@@ -51,15 +52,16 @@ export default function Index() {
         }));
         setDropdownOptions(OPTIONS);
     }, [meet.validYears]);
-    
 
+
+    
     return (
         <>
+            <AlertPopup storageKey={"startlister::alert"} title={"Viktig"} message={"Denne appen er under tidlig utvikling og kan se uferdig ut enkelte plasser. Informasjon vist i appen er stort sett riktig, men det er ingen garanti at den er 100% korrekt."}/>
             <Appbar.Header>
                 <Appbar.Content title="Stevneoversikt" />
                 {isLoading && <View style={{paddingRight: 16}}><ActivityIndicator size={25}/></View>}
             </Appbar.Header>
-            
             
                 <View style={[styles.filters, {backgroundColor: theme.colors.surfaceVariant}]}>
                     <View style={styles.search}>

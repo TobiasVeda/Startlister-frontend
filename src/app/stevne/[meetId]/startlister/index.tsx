@@ -95,7 +95,7 @@ export default function Index() {
     
     const renderNoClass = (item:Discipline) => {
         return(
-            <Collapsible title={item.name}>
+            <Collapsible title={item.name} defaultExpanded={!!swimmerId || !!clubId}>
                 {item.starts.map((x:Start, i:number) => (
                     <StartListItem
                         number={x.rank}

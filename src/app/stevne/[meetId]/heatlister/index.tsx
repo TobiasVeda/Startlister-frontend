@@ -57,24 +57,13 @@ export default function Index() {
     }, [heatlists]);
     
     
-    useAsync(async () => {
-        const searchQuery = constructSearchParams([{key: "clubId", value: clubId}, {key: "swimmerId", value: swimmerId}]);
-        try {
-            const response = await Fetch.get<Discipline[]>(`${apiHeatlists}/${meetId}/${searchQuery}`);
-            const data:Discipline[] = response.data;
-            setHeatlists(data);
-            setIsLoading(false);
-        } catch (e) {
-            // TODO
-        }
-    }, [])
-    
 
     const renderDiscipline = (discipline:Discipline) => {
         return (
                 <Collapsible 
                     title={discipline.name} 
                     rightText={`Øvelse start: ${discipline.startTime}`}
+                    defaultExpanded={!!swimmerId || !!clubId}
                 >
                     {discipline.heats.map((x:Heat, i) => (
                         <HeatBlock heat={x} />

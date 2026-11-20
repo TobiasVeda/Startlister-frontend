@@ -43,17 +43,6 @@ export default function Index() {
         return schedule;
     }, [schedule])
     
-    useAsync(async () => {
-        try {
-            const response = await Fetch.get<Session[]>(`${apiSchedule}/${meetId}`);
-            const data:Session[] = response.data;
-            setSchedule(data);
-            setIsLoading(false);
-        } catch (e) {
-            // TODO
-        }
-    }, [])
-    
     
     const renderSession = (item:Session, i:number) => {
         return (
